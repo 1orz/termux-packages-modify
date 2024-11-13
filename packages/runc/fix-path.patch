@@ -1,0 +1,69 @@
+diff --color -uNr runc-1.2.0/runc/libcontainer/criu_linux.go runc-1.2.0.mod/runc/libcontainer/criu_linux.go
+--- runc-1.2.0/runc/libcontainer/criu_linux.go	2024-10-22 06:21:47.000000000 +0800
++++ runc-1.2.0.mod/runc/libcontainer/criu_linux.go	2024-10-31 08:12:16.986699369 +0800
+@@ -160,7 +160,7 @@
+ 	} else {
+ 		// If the mentioned annotation has not been found, specify
+ 		// a default CRIU configuration file.
+-		rpcOpts.ConfigFile = proto.String("/etc/criu/runc.conf")
++		rpcOpts.ConfigFile = proto.String("@TERMUX_PREFIX@/etc/criu/runc.conf")
+ 	}
+ }
+ 
+diff --color -uNr runc-1.2.0/runc/list.go runc-1.2.0.mod/runc/list.go
+--- runc-1.2.0/runc/list.go	2024-10-22 06:21:47.000000000 +0800
++++ runc-1.2.0.mod/runc/list.go	2024-10-31 08:12:16.990699369 +0800
+@@ -46,7 +46,7 @@
+ 	ArgsUsage: `
+ 
+ Where the given root is specified via the global option "--root"
+-(default: "/run/runc").
++(default: "/data/local/tmp/docker/run/runc").
+ 
+ EXAMPLE 1:
+ To list containers created via the default "--root":
+diff --color -uNr runc-1.2.0/runc/main.go runc-1.2.0.mod/runc/main.go
+--- runc-1.2.0/runc/main.go	2024-10-22 06:21:47.000000000 +0800
++++ runc-1.2.0.mod/runc/main.go	2024-10-31 08:12:16.986699369 +0800
+@@ -73,7 +73,7 @@
+ 	}
+ 	app.Version = strings.Join(v, "\n")
+ 
+-	root := "/run/runc"
++	root := "/data/local/tmp/docker/run/runc"
+ 	xdgDirUsed := false
+ 	xdgRuntimeDir := os.Getenv("XDG_RUNTIME_DIR")
+ 	if xdgRuntimeDir != "" && shouldHonorXDGRuntimeDir() {
+diff --color -uNr runc-1.2.0/runc/notify_socket.go runc-1.2.0.mod/runc/notify_socket.go
+--- runc-1.2.0/runc/notify_socket.go	2024-10-22 06:21:47.000000000 +0800
++++ runc-1.2.0.mod/runc/notify_socket.go	2024-10-31 08:12:16.982699369 +0800
+@@ -48,7 +48,7 @@
+ // If systemd is supporting sd_notify protocol, this function will add support
+ // for sd_notify protocol from within the container.
+ func (s *notifySocket) setupSpec(spec *specs.Spec) {
+-	pathInContainer := filepath.Join("/run/notify", path.Base(s.socketPath))
++	pathInContainer := filepath.Join("/data/local/tmp/docker/run/notify", path.Base(s.socketPath))
+ 	mount := specs.Mount{
+ 		Destination: path.Dir(pathInContainer),
+ 		Source:      path.Dir(s.socketPath),
+diff --color -uNr runc-1.2.0/runc/vendor/github.com/vishvananda/netns/netns_linux.go runc-1.2.0.mod/runc/vendor/github.com/vishvananda/netns/netns_linux.go
+--- runc-1.2.0/runc/vendor/github.com/vishvananda/netns/netns_linux.go	2024-10-22 06:21:47.000000000 +0800
++++ runc-1.2.0.mod/runc/vendor/github.com/vishvananda/netns/netns_linux.go	2024-10-31 08:12:16.986699369 +0800
+@@ -81,7 +81,7 @@
+ // GetFromName gets a handle to a named network namespace such as one
+ // created by `ip netns add`.
+ func GetFromName(name string) (NsHandle, error) {
+-	return GetFromPath(fmt.Sprintf("/var/run/netns/%s", name))
++	return GetFromPath(fmt.Sprintf("@TERMUX_PREFIX@/var/run/netns/%s", name))
+ }
+ 
+ // GetFromPid gets a handle to the network namespace of a given pid.
+@@ -132,7 +132,7 @@
+ // borrowed from docker/utils/utils.go
+ // modified to get the docker pid instead of using /proc/self
+ func getThisCgroup(cgroupType string) (string, error) {
+-	dockerpid, err := ioutil.ReadFile("/var/run/docker.pid")
++	dockerpid, err := ioutil.ReadFile("/data/local/tmp/docker/run/docker.pid")
+ 	if err != nil {
+ 		return "", err
+ 	}

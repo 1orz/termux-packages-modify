@@ -1,0 +1,872 @@
+diff --color -uNr cli-27.3.1/cli/cli/command/cli.go cli-27.3.1.mod/cli/cli/command/cli.go
+--- cli-27.3.1/cli/cli/command/cli.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/cli/command/cli.go	2024-10-31 20:43:27.143994047 +0800
+@@ -9,7 +9,7 @@
+ 	"io"
+ 	"os"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 	"strconv"
+ 	"sync"
+ 	"time"
+@@ -569,7 +569,7 @@
+ 
+ // UserAgent returns the user agent string used for making API requests
+ func UserAgent() string {
+-	return "Docker-Client/" + version.Version + " (" + runtime.GOOS + ")"
++	return "Docker-Client/" + version.Version + " (" + "linux" + ")"
+ }
+ 
+ var defaultStoreEndpoints = []store.NamedTypeGetter{
+diff --color -uNr cli-27.3.1/cli/cli/command/container/hijack.go cli-27.3.1.mod/cli/cli/command/container/hijack.go
+--- cli-27.3.1/cli/cli/command/container/hijack.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/cli/command/container/hijack.go	2024-10-31 20:43:27.143994047 +0800
+@@ -4,7 +4,7 @@
+ 	"context"
+ 	"fmt"
+ 	"io"
+-	"runtime"
++	_ "runtime"
+ 	"sync"
+ 
+ 	"github.com/docker/cli/cli/command"
+@@ -200,7 +200,7 @@
+ 	// not the "legacy" console, and you start the client in a new window. eg
+ 	// `start docker run --rm -it microsoft/nanoserver cmd /s /c echo foobar`
+ 	// will hang. Remove start, and it won't repro.
+-	if in != nil && runtime.GOOS != "darwin" && runtime.GOOS != "windows" {
++	if in != nil && "linux" != "darwin" && "linux" != "windows" {
+ 		return in.Close()
+ 	}
+ 	return nil
+diff --color -uNr cli-27.3.1/cli/cli/command/container/tty.go cli-27.3.1.mod/cli/cli/command/container/tty.go
+--- cli-27.3.1/cli/cli/command/container/tty.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/cli/command/container/tty.go	2024-10-31 20:43:27.143994047 +0800
+@@ -5,7 +5,7 @@
+ 	"fmt"
+ 	"os"
+ 	gosignal "os/signal"
+-	"runtime"
++	_ "runtime"
+ 	"time"
+ 
+ 	"github.com/docker/cli/cli/command"
+@@ -70,7 +70,7 @@
+ // MonitorTtySize updates the container tty size when the terminal tty changes size
+ func MonitorTtySize(ctx context.Context, cli command.Cli, id string, isExec bool) error {
+ 	initTtySize(ctx, cli, id, isExec, resizeTty)
+-	if runtime.GOOS == "windows" {
++	if "linux" == "windows" {
+ 		go func() {
+ 			prevH, prevW := cli.Out().GetTtySize()
+ 			for {
+diff --color -uNr cli-27.3.1/cli/cli/command/image/build/context.go cli-27.3.1.mod/cli/cli/command/image/build/context.go
+--- cli-27.3.1/cli/cli/command/image/build/context.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/cli/command/image/build/context.go	2024-10-31 20:43:27.147994047 +0800
+@@ -10,7 +10,7 @@
+ 	"os"
+ 	"os/exec"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ 	"time"
+ 
+@@ -368,7 +368,7 @@
+ // isUNC returns true if the path is UNC (one starting \\). It always returns
+ // false on Linux.
+ func isUNC(path string) bool {
+-	return runtime.GOOS == "windows" && strings.HasPrefix(path, `\\`)
++	return "linux" == "windows" && strings.HasPrefix(path, `\\`)
+ }
+ 
+ // AddDockerfileToBuildContext from a ReadCloser, returns a new archive and
+diff --color -uNr cli-27.3.1/cli/cli/command/image/build.go cli-27.3.1.mod/cli/cli/command/image/build.go
+--- cli-27.3.1/cli/cli/command/image/build.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/cli/command/image/build.go	2024-10-31 20:43:27.147994047 +0800
+@@ -11,7 +11,7 @@
+ 	"os"
+ 	"path/filepath"
+ 	"regexp"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ 
+ 	"github.com/distribution/reference"
+@@ -375,7 +375,7 @@
+ 
+ 	// Windows: show error message about modified file permissions if the
+ 	// daemon isn't running Windows.
+-	if response.OSType != "windows" && runtime.GOOS == "windows" && !options.quiet {
++	if response.OSType != "windows" && "linux" == "windows" && !options.quiet {
+ 		fmt.Fprintln(dockerCli.Out(), "SECURITY WARNING: You are building a Docker "+
+ 			"image from Windows against a non-Windows Docker host. All files and "+
+ 			"directories added to build context will have '-rwxr-xr-x' permissions. "+
+diff --color -uNr cli-27.3.1/cli/cli/command/registry.go cli-27.3.1.mod/cli/cli/command/registry.go
+--- cli-27.3.1/cli/cli/command/registry.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/cli/command/registry.go	2024-10-31 20:43:27.147994047 +0800
+@@ -4,7 +4,7 @@
+ 	"context"
+ 	"fmt"
+ 	"os"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ 
+ 	"github.com/distribution/reference"
+@@ -120,7 +120,7 @@
+ 	// - https://github.com/moby/moby/pull/17738
+ 	//
+ 	// TODO(thaJeztah): we need to confirm if this special handling is still needed, as we may not be doing this in other places.
+-	if runtime.GOOS == "windows" {
++	if "linux" == "windows" {
+ 		cli.SetIn(streams.NewIn(os.Stdin))
+ 	}
+ 
+diff --color -uNr cli-27.3.1/cli/cli/command/stack/loader/loader.go cli-27.3.1.mod/cli/cli/command/stack/loader/loader.go
+--- cli-27.3.1/cli/cli/command/stack/loader/loader.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/cli/command/stack/loader/loader.go	2024-10-31 20:43:27.147994047 +0800
+@@ -8,7 +8,7 @@
+ 	"io"
+ 	"os"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 	"sort"
+ 	"strings"
+ 
+@@ -107,7 +107,7 @@
+ func buildEnvironment(env []string) (map[string]string, error) {
+ 	result := make(map[string]string, len(env))
+ 	for _, s := range env {
+-		if runtime.GOOS == "windows" && len(s) > 0 {
++		if "linux" == "windows" && len(s) > 0 {
+ 			// cmd.exe can have special environment variables which names start with "=".
+ 			// They are only there for MS-DOS compatibility and we should ignore them.
+ 			// See TestBuildEnvironment for examples.
+diff --color -uNr cli-27.3.1/cli/cli/command/system/version.go cli-27.3.1.mod/cli/cli/command/system/version.go
+--- cli-27.3.1/cli/cli/command/system/version.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/cli/command/system/version.go	2024-10-31 20:43:27.147994047 +0800
+@@ -93,7 +93,7 @@
+ 		GoVersion: runtime.Version(),
+ 		GitCommit: version.GitCommit,
+ 		BuildTime: reformatDate(version.BuildTime),
+-		Os:        runtime.GOOS,
++		Os:        "linux",
+ 		Arch:      arch(),
+ 		Context:   contextName,
+ 	}
+diff --color -uNr cli-27.3.1/cli/cli/command/trust/key_load.go cli-27.3.1.mod/cli/cli/command/trust/key_load.go
+--- cli-27.3.1/cli/cli/command/trust/key_load.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/cli/command/trust/key_load.go	2024-10-31 20:43:27.147994047 +0800
+@@ -6,7 +6,7 @@
+ 	"fmt"
+ 	"io"
+ 	"os"
+-	"runtime"
++	_ "runtime"
+ 
+ 	"github.com/docker/cli/cli"
+ 	"github.com/docker/cli/cli/command"
+@@ -70,7 +70,7 @@
+ }
+ 
+ func getPrivKeyBytesFromPath(keyPath string) ([]byte, error) {
+-	if runtime.GOOS != "windows" {
++	if "linux" != "windows" {
+ 		fileInfo, err := os.Stat(keyPath)
+ 		if err != nil {
+ 			return nil, err
+diff --color -uNr cli-27.3.1/cli/cli/command/utils.go cli-27.3.1.mod/cli/cli/command/utils.go
+--- cli-27.3.1/cli/cli/command/utils.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/cli/command/utils.go	2024-10-31 20:43:27.151994047 +0800
+@@ -10,7 +10,7 @@
+ 	"io"
+ 	"os"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ 
+ 	"github.com/docker/cli/cli/streams"
+@@ -138,7 +138,7 @@
+ 	_, _ = fmt.Fprint(outs, message)
+ 
+ 	// On Windows, force the use of the regular OS stdin stream.
+-	if runtime.GOOS == "windows" {
++	if "linux" == "windows" {
+ 		ins = streams.NewIn(os.Stdin)
+ 	}
+ 
+diff --color -uNr cli-27.3.1/cli/cli/config/config.go cli-27.3.1.mod/cli/cli/config/config.go
+--- cli-27.3.1/cli/cli/config/config.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/cli/config/config.go	2024-10-31 20:43:27.151994047 +0800
+@@ -6,7 +6,7 @@
+ 	"os"
+ 	"os/user"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ 	"sync"
+ 
+@@ -61,7 +61,7 @@
+ // [pkg/homedir.Get]: https://pkg.go.dev/github.com/docker/docker@v26.1.4+incompatible/pkg/homedir#Get
+ func getHomeDir() string {
+ 	home, _ := os.UserHomeDir()
+-	if home == "" && runtime.GOOS != "windows" {
++	if home == "" && "linux" != "windows" {
+ 		if u, err := user.Current(); err == nil {
+ 			return u.HomeDir
+ 		}
+diff --color -uNr cli-27.3.1/cli/cli/connhelper/commandconn/commandconn.go cli-27.3.1.mod/cli/cli/connhelper/commandconn/commandconn.go
+--- cli-27.3.1/cli/cli/connhelper/commandconn/commandconn.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/cli/connhelper/commandconn/commandconn.go	2024-10-31 20:43:27.151994047 +0800
+@@ -21,7 +21,7 @@
+ 	"net"
+ 	"os"
+ 	"os/exec"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ 	"sync"
+ 	"sync/atomic"
+@@ -89,7 +89,7 @@
+ 	}
+ 	c.cmdMutex.Lock()
+ 	var werr error
+-	if runtime.GOOS != "windows" {
++	if "linux" != "windows" {
+ 		werrCh := make(chan error)
+ 		go func() { werrCh <- c.cmd.Wait() }()
+ 		_ = c.cmd.Process.Signal(syscall.SIGTERM)
+diff --color -uNr cli-27.3.1/cli/cli/internal/oauth/api/api.go cli-27.3.1.mod/cli/cli/internal/oauth/api/api.go
+--- cli-27.3.1/cli/cli/internal/oauth/api/api.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/cli/internal/oauth/api/api.go	2024-10-31 20:43:27.151994047 +0800
+@@ -219,7 +219,7 @@
+ 
+ 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+ 	cliVersion := strings.ReplaceAll(version.Version, ".", "_")
+-	req.Header.Set("User-Agent", fmt.Sprintf("docker-cli:%s:%s-%s", cliVersion, runtime.GOOS, runtime.GOARCH))
++	req.Header.Set("User-Agent", fmt.Sprintf("docker-cli:%s:%s-%s", cliVersion, "linux", runtime.GOARCH))
+ 
+ 	return http.DefaultClient.Do(req)
+ }
+diff --color -uNr cli-27.3.1/cli/cli/internal/oauth/manager/util.go cli-27.3.1.mod/cli/cli/internal/oauth/manager/util.go
+--- cli-27.3.1/cli/cli/internal/oauth/manager/util.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/cli/internal/oauth/manager/util.go	2024-10-31 20:43:27.155994047 +0800
+@@ -22,7 +22,7 @@
+ 		Audience:   audience,
+ 		ClientID:   clientID,
+ 		Tenant:     tenant,
+-		DeviceName: fmt.Sprintf("docker-cli:%s:%s-%s", cliVersion, runtime.GOOS, runtime.GOARCH),
++		DeviceName: fmt.Sprintf("docker-cli:%s:%s-%s", cliVersion, "linux", runtime.GOARCH),
+ 	}
+ 	return New(options)
+ }
+diff --color -uNr cli-27.3.1/cli/cli/streams/in.go cli-27.3.1.mod/cli/cli/streams/in.go
+--- cli-27.3.1/cli/cli/streams/in.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/cli/streams/in.go	2024-10-31 20:43:27.155994047 +0800
+@@ -4,7 +4,7 @@
+ 	"errors"
+ 	"io"
+ 	"os"
+-	"runtime"
++	_ "runtime"
+ 
+ 	"github.com/moby/term"
+ )
+@@ -45,7 +45,7 @@
+ 	// incompatible with `docker run -t`, `docker exec -t` or `docker attach`.
+ 	if ttyMode && attachStdin && !i.isTerminal {
+ 		const eText = "the input device is not a TTY"
+-		if runtime.GOOS == "windows" {
++		if "linux" == "windows" {
+ 			return errors.New(eText + ".  If you are using mintty, try prefixing the command with 'winpty'")
+ 		}
+ 		return errors.New(eText)
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/containerd/platforms/cpuinfo.go cli-27.3.1.mod/cli/vendor/github.com/containerd/platforms/cpuinfo.go
+--- cli-27.3.1/cli/vendor/github.com/containerd/platforms/cpuinfo.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/containerd/platforms/cpuinfo.go	2024-10-31 20:43:27.155994047 +0800
+@@ -35,7 +35,7 @@
+ 			var err error
+ 			cpuVariantValue, err = getCPUVariant()
+ 			if err != nil {
+-				log.L.Errorf("Error getCPUVariant for OS %s: %v", runtime.GOOS, err)
++				log.L.Errorf("Error getCPUVariant for OS %s: %v", "linux", err)
+ 			}
+ 		}
+ 	})
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/containerd/platforms/cpuinfo_other.go cli-27.3.1.mod/cli/vendor/github.com/containerd/platforms/cpuinfo_other.go
+--- cli-27.3.1/cli/vendor/github.com/containerd/platforms/cpuinfo_other.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/containerd/platforms/cpuinfo_other.go	2024-10-31 20:43:27.155994047 +0800
+@@ -27,7 +27,7 @@
+ 
+ 	var variant string
+ 
+-	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
++	if "linux" == "windows" || "linux" == "darwin" {
+ 		// Windows/Darwin only supports v7 for ARM32 and v8 for ARM64 and so we can use
+ 		// runtime.GOARCH to determine the variants
+ 		switch runtime.GOARCH {
+@@ -38,7 +38,7 @@
+ 		default:
+ 			variant = "unknown"
+ 		}
+-	} else if runtime.GOOS == "freebsd" {
++	} else if "linux" == "freebsd" {
+ 		// FreeBSD supports ARMv6 and ARMv7 as well as ARMv4 and ARMv5 (though deprecated)
+ 		// detecting those variants is currently unimplemented
+ 		switch runtime.GOARCH {
+@@ -48,7 +48,7 @@
+ 			variant = "unknown"
+ 		}
+ 	} else {
+-		return "", fmt.Errorf("getCPUVariant for OS %s: %v", runtime.GOOS, errNotImplemented)
++		return "", fmt.Errorf("getCPUVariant for OS %s: %v", "linux", errNotImplemented)
+ 	}
+ 
+ 	return variant, nil
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/containerd/platforms/database.go cli-27.3.1.mod/cli/vendor/github.com/containerd/platforms/database.go
+--- cli-27.3.1/cli/vendor/github.com/containerd/platforms/database.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/containerd/platforms/database.go	2024-10-31 20:43:27.155994047 +0800
+@@ -17,7 +17,7 @@
+ package platforms
+ 
+ import (
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ )
+ 
+@@ -61,7 +61,7 @@
+ 
+ func normalizeOS(os string) string {
+ 	if os == "" {
+-		return runtime.GOOS
++		return "linux"
+ 	}
+ 	os = strings.ToLower(os)
+ 
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/containerd/platforms/defaults_darwin.go cli-27.3.1.mod/cli/vendor/github.com/containerd/platforms/defaults_darwin.go
+--- cli-27.3.1/cli/vendor/github.com/containerd/platforms/defaults_darwin.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/containerd/platforms/defaults_darwin.go	2024-10-31 20:43:27.155994047 +0800
+@@ -27,7 +27,7 @@
+ // DefaultSpec returns the current platform's default platform specification.
+ func DefaultSpec() specs.Platform {
+ 	return specs.Platform{
+-		OS:           runtime.GOOS,
++		OS:           "linux",
+ 		Architecture: runtime.GOARCH,
+ 		// The Variant field will be empty if arch != ARM.
+ 		Variant: cpuVariant(),
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/containerd/platforms/defaults_freebsd.go cli-27.3.1.mod/cli/vendor/github.com/containerd/platforms/defaults_freebsd.go
+--- cli-27.3.1/cli/vendor/github.com/containerd/platforms/defaults_freebsd.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/containerd/platforms/defaults_freebsd.go	2024-10-31 20:43:27.159994047 +0800
+@@ -25,7 +25,7 @@
+ // DefaultSpec returns the current platform's default platform specification.
+ func DefaultSpec() specs.Platform {
+ 	return specs.Platform{
+-		OS:           runtime.GOOS,
++		OS:           "linux",
+ 		Architecture: runtime.GOARCH,
+ 		// The Variant field will be empty if arch != ARM.
+ 		Variant: cpuVariant(),
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/containerd/platforms/defaults_unix.go cli-27.3.1.mod/cli/vendor/github.com/containerd/platforms/defaults_unix.go
+--- cli-27.3.1/cli/vendor/github.com/containerd/platforms/defaults_unix.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/containerd/platforms/defaults_unix.go	2024-10-31 20:43:27.159994047 +0800
+@@ -27,7 +27,7 @@
+ // DefaultSpec returns the current platform's default platform specification.
+ func DefaultSpec() specs.Platform {
+ 	return specs.Platform{
+-		OS:           runtime.GOOS,
++		OS:           "linux",
+ 		Architecture: runtime.GOARCH,
+ 		// The Variant field will be empty if arch != ARM.
+ 		Variant: cpuVariant(),
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/containerd/platforms/defaults_windows.go cli-27.3.1.mod/cli/vendor/github.com/containerd/platforms/defaults_windows.go
+--- cli-27.3.1/cli/vendor/github.com/containerd/platforms/defaults_windows.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/containerd/platforms/defaults_windows.go	2024-10-31 20:43:27.159994047 +0800
+@@ -30,7 +30,7 @@
+ func DefaultSpec() specs.Platform {
+ 	major, minor, build := windows.RtlGetNtVersionNumbers()
+ 	return specs.Platform{
+-		OS:           runtime.GOOS,
++		OS:           "linux",
+ 		Architecture: runtime.GOARCH,
+ 		OSVersion:    fmt.Sprintf("%d.%d.%d", major, minor, build),
+ 		// The Variant field will be empty if arch != ARM.
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/containerd/platforms/platforms.go cli-27.3.1.mod/cli/vendor/github.com/containerd/platforms/platforms.go
+--- cli-27.3.1/cli/vendor/github.com/containerd/platforms/platforms.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/containerd/platforms/platforms.go	2024-10-31 20:43:27.159994047 +0800
+@@ -236,7 +236,7 @@
+ 			p.Variant = ""
+ 		}
+ 		if isKnownArch(p.Architecture) {
+-			p.OS = runtime.GOOS
++			p.OS = "linux"
+ 			return p, nil
+ 		}
+ 
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/docker/docker/pkg/archive/archive.go cli-27.3.1.mod/cli/vendor/github.com/docker/docker/pkg/archive/archive.go
+--- cli-27.3.1/cli/vendor/github.com/docker/docker/pkg/archive/archive.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/docker/docker/pkg/archive/archive.go	2024-10-31 20:43:27.159994047 +0800
+@@ -14,7 +14,7 @@
+ 	"os"
+ 	"os/exec"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 	"strconv"
+ 	"strings"
+ 	"syscall"
+@@ -766,7 +766,7 @@
+ 	}
+ 
+ 	// Lchown is not supported on Windows.
+-	if Lchown && runtime.GOOS != "windows" {
++	if Lchown && "linux" != "windows" {
+ 		if chownOpts == nil {
+ 			chownOpts = &idtools.Identity{UID: hdr.Uid, GID: hdr.Gid}
+ 		}
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/docker/docker/pkg/archive/archive_unix.go cli-27.3.1.mod/cli/vendor/github.com/docker/docker/pkg/archive/archive_unix.go
+--- cli-27.3.1/cli/vendor/github.com/docker/docker/pkg/archive/archive_unix.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/docker/docker/pkg/archive/archive_unix.go	2024-10-31 20:43:27.163994047 +0800
+@@ -7,7 +7,7 @@
+ 	"errors"
+ 	"os"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ 	"syscall"
+ 
+@@ -54,7 +54,7 @@
+ 
+ 	// Since `Stat_t.Rdev` is uint64, the cast turns -1 into (2^64 - 1).
+ 	// Such large values cannot be encoded in a tar header.
+-	if runtime.GOOS == "freebsd" && hdr.Typeflag != tar.TypeBlock && hdr.Typeflag != tar.TypeChar {
++	if "linux" == "freebsd" && hdr.Typeflag != tar.TypeBlock && hdr.Typeflag != tar.TypeChar {
+ 		return nil
+ 	}
+ 	s, ok := fi.Sys().(*syscall.Stat_t)
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/docker/docker/pkg/archive/changes_other.go cli-27.3.1.mod/cli/vendor/github.com/docker/docker/pkg/archive/changes_other.go
+--- cli-27.3.1/cli/vendor/github.com/docker/docker/pkg/archive/changes_other.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/docker/docker/pkg/archive/changes_other.go	2024-10-31 20:43:27.163994047 +0800
+@@ -6,7 +6,7 @@
+ 	"fmt"
+ 	"os"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ 
+ 	"github.com/docker/docker/pkg/system"
+@@ -57,7 +57,7 @@
+ 		// See https://github.com/golang/go/issues/9168 - bug in filepath.Join.
+ 		// Temporary workaround. If the returned path starts with two backslashes,
+ 		// trim it down to a single backslash. Only relevant on Windows.
+-		if runtime.GOOS == "windows" {
++		if "linux" == "windows" {
+ 			if strings.HasPrefix(relPath, `\\`) {
+ 				relPath = relPath[1:]
+ 			}
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/docker/docker/pkg/archive/diff.go cli-27.3.1.mod/cli/vendor/github.com/docker/docker/pkg/archive/diff.go
+--- cli-27.3.1/cli/vendor/github.com/docker/docker/pkg/archive/diff.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/docker/docker/pkg/archive/diff.go	2024-10-31 20:43:27.163994047 +0800
+@@ -7,7 +7,7 @@
+ 	"io"
+ 	"os"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ 
+ 	"github.com/containerd/log"
+@@ -66,7 +66,7 @@
+ 		// specific or Linux-specific, this warning should be changed to an error
+ 		// to cater for the situation where someone does manage to upload a Linux
+ 		// image but have it tagged as Windows inadvertently.
+-		if runtime.GOOS == "windows" {
++		if "linux" == "windows" {
+ 			if strings.Contains(hdr.Name, ":") {
+ 				log.G(context.TODO()).Warnf("Windows: Ignoring %s (is this a Linux image?)", hdr.Name)
+ 				continue
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/docker/docker/pkg/homedir/homedir.go cli-27.3.1.mod/cli/vendor/github.com/docker/docker/pkg/homedir/homedir.go
+--- cli-27.3.1/cli/vendor/github.com/docker/docker/pkg/homedir/homedir.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/docker/docker/pkg/homedir/homedir.go	2024-10-31 20:43:27.163994047 +0800
+@@ -3,7 +3,7 @@
+ import (
+ 	"os"
+ 	"os/user"
+-	"runtime"
++	_ "runtime"
+ )
+ 
+ // Get returns the home directory of the current user with the help of
+@@ -19,7 +19,7 @@
+ // If needing to do nss lookups, do not disable cgo or set osusergo.
+ func Get() string {
+ 	home, _ := os.UserHomeDir()
+-	if home == "" && runtime.GOOS != "windows" {
++	if home == "" && "linux" != "windows" {
+ 		if u, err := user.Current(); err == nil {
+ 			return u.HomeDir
+ 		}
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/docker/docker/pkg/longpath/longpath.go cli-27.3.1.mod/cli/vendor/github.com/docker/docker/pkg/longpath/longpath.go
+--- cli-27.3.1/cli/vendor/github.com/docker/docker/pkg/longpath/longpath.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/docker/docker/pkg/longpath/longpath.go	2024-10-31 20:43:27.163994047 +0800
+@@ -7,7 +7,7 @@
+ 
+ import (
+ 	"os"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ )
+ 
+@@ -40,7 +40,7 @@
+ 	if err != nil {
+ 		return "", err
+ 	}
+-	if runtime.GOOS != "windows" {
++	if "linux" != "windows" {
+ 		return tempDir, nil
+ 	}
+ 	return AddPrefix(tempDir), nil
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/docker/docker/pkg/process/process_unix.go cli-27.3.1.mod/cli/vendor/github.com/docker/docker/pkg/process/process_unix.go
+--- cli-27.3.1/cli/vendor/github.com/docker/docker/pkg/process/process_unix.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/docker/docker/pkg/process/process_unix.go	2024-10-31 20:43:27.163994047 +0800
+@@ -7,7 +7,7 @@
+ 	"fmt"
+ 	"os"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 	"strconv"
+ 
+ 	"golang.org/x/sys/unix"
+@@ -21,7 +21,7 @@
+ 	if pid < 1 {
+ 		return false
+ 	}
+-	switch runtime.GOOS {
++	switch "linux" {
+ 	case "darwin":
+ 		// OS X does not have a proc filesystem. Use kill -0 pid to judge if the
+ 		// process exists. From KILL(2): https://www.freebsd.org/cgi/man.cgi?query=kill&sektion=2&manpath=OpenDarwin+7.2.1
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/docker/go-connections/tlsconfig/certpool.go cli-27.3.1.mod/cli/vendor/github.com/docker/go-connections/tlsconfig/certpool.go
+--- cli-27.3.1/cli/vendor/github.com/docker/go-connections/tlsconfig/certpool.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/docker/go-connections/tlsconfig/certpool.go	2024-10-31 20:43:27.163994047 +0800
+@@ -2,14 +2,14 @@
+ 
+ import (
+ 	"crypto/x509"
+-	"runtime"
++	_ "runtime"
+ )
+ 
+ // SystemCertPool returns a copy of the system cert pool,
+ // returns an error if failed to load or empty pool on windows.
+ func SystemCertPool() (*x509.CertPool, error) {
+ 	certpool, err := x509.SystemCertPool()
+-	if err != nil && runtime.GOOS == "windows" {
++	if err != nil && "linux" == "windows" {
+ 		return x509.NewCertPool(), nil
+ 	}
+ 	return certpool, err
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/pkg/browser/browser_unsupported.go cli-27.3.1.mod/cli/vendor/github.com/pkg/browser/browser_unsupported.go
+--- cli-27.3.1/cli/vendor/github.com/pkg/browser/browser_unsupported.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/pkg/browser/browser_unsupported.go	2024-10-31 20:43:27.167994047 +0800
+@@ -4,9 +4,9 @@
+ 
+ import (
+ 	"fmt"
+-	"runtime"
++	_ "runtime"
+ )
+ 
+ func openBrowser(url string) error {
+-	return fmt.Errorf("openBrowser: unsupported operating system: %v", runtime.GOOS)
++	return fmt.Errorf("openBrowser: unsupported operating system: %v", "linux")
+ }
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/sirupsen/logrus/text_formatter.go cli-27.3.1.mod/cli/vendor/github.com/sirupsen/logrus/text_formatter.go
+--- cli-27.3.1/cli/vendor/github.com/sirupsen/logrus/text_formatter.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/sirupsen/logrus/text_formatter.go	2024-10-31 20:43:27.167994047 +0800
+@@ -115,7 +115,7 @@
+ }
+ 
+ func (f *TextFormatter) isColored() bool {
+-	isColored := f.ForceColors || (f.isTerminal && (runtime.GOOS != "windows"))
++	isColored := f.ForceColors || (f.isTerminal && ("linux" != "windows"))
+ 
+ 	if f.EnvironmentOverrideColors {
+ 		switch force, ok := os.LookupEnv("CLICOLOR_FORCE"); {
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/xeipuuv/gojsonreference/reference.go cli-27.3.1.mod/cli/vendor/github.com/xeipuuv/gojsonreference/reference.go
+--- cli-27.3.1/cli/vendor/github.com/xeipuuv/gojsonreference/reference.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/xeipuuv/gojsonreference/reference.go	2024-10-31 20:43:27.167994047 +0800
+@@ -29,7 +29,7 @@
+ 	"errors"
+ 	"net/url"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ 
+ 	"github.com/xeipuuv/gojsonpointer"
+@@ -103,7 +103,7 @@
+ 	}
+ 
+ 	r.HasFileScheme = refUrl.Scheme == "file"
+-	if runtime.GOOS == "windows" {
++	if "linux" == "windows" {
+ 		// on Windows, a file URL may have an extra leading slash, and if it
+ 		// doesn't then its first component will be treated as the host by the
+ 		// Go runtime
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/xeipuuv/gojsonschema/jsonLoader.go cli-27.3.1.mod/cli/vendor/github.com/xeipuuv/gojsonschema/jsonLoader.go
+--- cli-27.3.1/cli/vendor/github.com/xeipuuv/gojsonschema/jsonLoader.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/xeipuuv/gojsonschema/jsonLoader.go	2024-10-31 20:43:27.167994047 +0800
+@@ -36,7 +36,7 @@
+ 	"net/url"
+ 	"os"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ 
+ 	"github.com/xeipuuv/gojsonreference"
+@@ -152,7 +152,7 @@
+ 			return nil, err
+ 		}
+ 
+-		if runtime.GOOS == "windows" {
++		if "linux" == "windows" {
+ 			// on Windows, a file URL may have an extra leading slash, use slashes
+ 			// instead of backslashes, and have spaces escaped
+ 			filename = strings.TrimPrefix(filename, "/")
+diff --color -uNr cli-27.3.1/cli/vendor/golang.org/x/net/http2/server.go cli-27.3.1.mod/cli/vendor/golang.org/x/net/http2/server.go
+--- cli-27.3.1/cli/vendor/golang.org/x/net/http2/server.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/golang.org/x/net/http2/server.go	2024-10-31 20:43:27.171994047 +0800
+@@ -780,7 +780,7 @@
+ 	// build tags, so I can't make an http2_windows.go file with
+ 	// Windows-specific stuff. Fix that and move this, once we
+ 	// have a way to bundle this into std's net/http somehow.
+-	if runtime.GOOS == "windows" {
++	if "linux" == "windows" {
+ 		if oe, ok := err.(*net.OpError); ok && oe.Op == "read" {
+ 			if se, ok := oe.Err.(*os.SyscallError); ok && se.Syscall == "wsarecv" {
+ 				const WSAECONNABORTED = 10053
+diff --color -uNr cli-27.3.1/cli/vendor/golang.org/x/sys/unix/sockcmsg_unix_other.go cli-27.3.1.mod/cli/vendor/golang.org/x/sys/unix/sockcmsg_unix_other.go
+--- cli-27.3.1/cli/vendor/golang.org/x/sys/unix/sockcmsg_unix_other.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/golang.org/x/sys/unix/sockcmsg_unix_other.go	2024-10-31 20:43:27.171994047 +0800
+@@ -16,7 +16,7 @@
+ 
+ 	// dragonfly needs to check ABI version at runtime, see cmsgAlignOf in
+ 	// sockcmsg_dragonfly.go
+-	switch runtime.GOOS {
++	switch "linux" {
+ 	case "aix":
+ 		// There is no alignment on AIX.
+ 		salign = 1
+@@ -33,7 +33,7 @@
+ 			salign = 8
+ 		}
+ 		// NetBSD aarch64 requires 128-bit alignment.
+-		if runtime.GOOS == "netbsd" && runtime.GOARCH == "arm64" {
++		if "linux" == "netbsd" && runtime.GOARCH == "arm64" {
+ 			salign = 16
+ 		}
+ 	case "zos":
+diff --color -uNr cli-27.3.1/cli/vendor/golang.org/x/sys/unix/syscall_bsd.go cli-27.3.1.mod/cli/vendor/golang.org/x/sys/unix/syscall_bsd.go
+--- cli-27.3.1/cli/vendor/golang.org/x/sys/unix/syscall_bsd.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/golang.org/x/sys/unix/syscall_bsd.go	2024-10-31 20:43:27.171994047 +0800
+@@ -13,7 +13,7 @@
+ package unix
+ 
+ import (
+-	"runtime"
++	_ "runtime"
+ 	"syscall"
+ 	"unsafe"
+ )
+@@ -274,7 +274,7 @@
+ 	if err != nil {
+ 		return
+ 	}
+-	if (runtime.GOOS == "darwin" || runtime.GOOS == "ios") && len == 0 {
++	if ("linux" == "darwin" || "linux" == "ios") && len == 0 {
+ 		// Accepted socket has no address.
+ 		// This is likely due to a bug in xnu kernels,
+ 		// where instead of ECONNABORTED error socket
+@@ -298,7 +298,7 @@
+ 	}
+ 	// TODO(jsing): DragonFly has a "bug" (see issue 3349), which should be
+ 	// reported upstream.
+-	if runtime.GOOS == "dragonfly" && rsa.Addr.Family == AF_UNSPEC && rsa.Addr.Len == 0 {
++	if "linux" == "dragonfly" && rsa.Addr.Family == AF_UNSPEC && rsa.Addr.Len == 0 {
+ 		rsa.Addr.Family = AF_UNIX
+ 		rsa.Addr.Len = SizeofSockaddrUnix
+ 	}
+diff --color -uNr cli-27.3.1/cli/vendor/golang.org/x/term/terminal.go cli-27.3.1.mod/cli/vendor/golang.org/x/term/terminal.go
+--- cli-27.3.1/cli/vendor/golang.org/x/term/terminal.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/golang.org/x/term/terminal.go	2024-10-31 20:43:27.175994047 +0800
+@@ -7,7 +7,7 @@
+ import (
+ 	"bytes"
+ 	"io"
+-	"runtime"
++	_ "runtime"
+ 	"strconv"
+ 	"sync"
+ 	"unicode/utf8"
+@@ -962,12 +962,12 @@
+ 					ret = ret[:len(ret)-1]
+ 				}
+ 			case '\n':
+-				if runtime.GOOS != "windows" {
++				if "linux" != "windows" {
+ 					return ret, nil
+ 				}
+ 				// otherwise ignore \n
+ 			case '\r':
+-				if runtime.GOOS == "windows" {
++				if "linux" == "windows" {
+ 					return ret, nil
+ 				}
+ 				// otherwise ignore \r
+diff --color -uNr cli-27.3.1/cli/vendor/golang.org/x/term/term_plan9.go cli-27.3.1.mod/cli/vendor/golang.org/x/term/term_plan9.go
+--- cli-27.3.1/cli/vendor/golang.org/x/term/term_plan9.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/golang.org/x/term/term_plan9.go	2024-10-31 20:43:27.175994047 +0800
+@@ -22,21 +22,21 @@
+ }
+ 
+ func makeRaw(fd int) (*State, error) {
+-	return nil, fmt.Errorf("terminal: MakeRaw not implemented on %s/%s", runtime.GOOS, runtime.GOARCH)
++	return nil, fmt.Errorf("terminal: MakeRaw not implemented on %s/%s", "linux", runtime.GOARCH)
+ }
+ 
+ func getState(fd int) (*State, error) {
+-	return nil, fmt.Errorf("terminal: GetState not implemented on %s/%s", runtime.GOOS, runtime.GOARCH)
++	return nil, fmt.Errorf("terminal: GetState not implemented on %s/%s", "linux", runtime.GOARCH)
+ }
+ 
+ func restore(fd int, state *State) error {
+-	return fmt.Errorf("terminal: Restore not implemented on %s/%s", runtime.GOOS, runtime.GOARCH)
++	return fmt.Errorf("terminal: Restore not implemented on %s/%s", "linux", runtime.GOARCH)
+ }
+ 
+ func getSize(fd int) (width, height int, err error) {
+-	return 0, 0, fmt.Errorf("terminal: GetSize not implemented on %s/%s", runtime.GOOS, runtime.GOARCH)
++	return 0, 0, fmt.Errorf("terminal: GetSize not implemented on %s/%s", "linux", runtime.GOARCH)
+ }
+ 
+ func readPassword(fd int) ([]byte, error) {
+-	return nil, fmt.Errorf("terminal: ReadPassword not implemented on %s/%s", runtime.GOOS, runtime.GOARCH)
++	return nil, fmt.Errorf("terminal: ReadPassword not implemented on %s/%s", "linux", runtime.GOARCH)
+ }
+diff --color -uNr cli-27.3.1/cli/vendor/golang.org/x/term/term_unsupported.go cli-27.3.1.mod/cli/vendor/golang.org/x/term/term_unsupported.go
+--- cli-27.3.1/cli/vendor/golang.org/x/term/term_unsupported.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/golang.org/x/term/term_unsupported.go	2024-10-31 20:43:27.175994047 +0800
+@@ -18,21 +18,21 @@
+ }
+ 
+ func makeRaw(fd int) (*State, error) {
+-	return nil, fmt.Errorf("terminal: MakeRaw not implemented on %s/%s", runtime.GOOS, runtime.GOARCH)
++	return nil, fmt.Errorf("terminal: MakeRaw not implemented on %s/%s", "linux", runtime.GOARCH)
+ }
+ 
+ func getState(fd int) (*State, error) {
+-	return nil, fmt.Errorf("terminal: GetState not implemented on %s/%s", runtime.GOOS, runtime.GOARCH)
++	return nil, fmt.Errorf("terminal: GetState not implemented on %s/%s", "linux", runtime.GOARCH)
+ }
+ 
+ func restore(fd int, state *State) error {
+-	return fmt.Errorf("terminal: Restore not implemented on %s/%s", runtime.GOOS, runtime.GOARCH)
++	return fmt.Errorf("terminal: Restore not implemented on %s/%s", "linux", runtime.GOARCH)
+ }
+ 
+ func getSize(fd int) (width, height int, err error) {
+-	return 0, 0, fmt.Errorf("terminal: GetSize not implemented on %s/%s", runtime.GOOS, runtime.GOARCH)
++	return 0, 0, fmt.Errorf("terminal: GetSize not implemented on %s/%s", "linux", runtime.GOARCH)
+ }
+ 
+ func readPassword(fd int) ([]byte, error) {
+-	return nil, fmt.Errorf("terminal: ReadPassword not implemented on %s/%s", runtime.GOOS, runtime.GOARCH)
++	return nil, fmt.Errorf("terminal: ReadPassword not implemented on %s/%s", "linux", runtime.GOARCH)
+ }
+diff --color -uNr cli-27.3.1/cli/vendor/go.opentelemetry.io/otel/sdk/resource/process.go cli-27.3.1.mod/cli/vendor/go.opentelemetry.io/otel/sdk/resource/process.go
+--- cli-27.3.1/cli/vendor/go.opentelemetry.io/otel/sdk/resource/process.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/go.opentelemetry.io/otel/sdk/resource/process.go	2024-10-31 20:43:27.175994047 +0800
+@@ -48,7 +48,7 @@
+ 		return runtime.Compiler
+ 	}
+ 	defaultRuntimeVersionProvider runtimeVersionProvider = runtime.Version
+-	defaultRuntimeOSProvider      runtimeOSProvider      = func() string { return runtime.GOOS }
++	defaultRuntimeOSProvider      runtimeOSProvider      = func() string { return "linux" }
+ 	defaultRuntimeArchProvider    runtimeArchProvider    = func() string { return runtime.GOARCH }
+ )
+ 
+diff --color -uNr cli-27.3.1/cli/vendor/gotest.tools/v3/fs/file.go cli-27.3.1.mod/cli/vendor/gotest.tools/v3/fs/file.go
+--- cli-27.3.1/cli/vendor/gotest.tools/v3/fs/file.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/gotest.tools/v3/fs/file.go	2024-10-31 20:43:27.175994047 +0800
+@@ -7,7 +7,7 @@
+ import (
+ 	"os"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ 
+ 	"gotest.tools/v3/assert"
+@@ -58,7 +58,7 @@
+ 
+ func cleanPrefix(prefix string) string {
+ 	// windows requires both / and \ are replaced
+-	if runtime.GOOS == "windows" {
++	if "linux" == "windows" {
+ 		prefix = strings.Replace(prefix, string(os.PathSeparator), "-", -1)
+ 	}
+ 	return strings.Replace(prefix, "/", "-", -1)
+diff --color -uNr cli-27.3.1/cli/vendor/gotest.tools/v3/fs/manifest_unix.go cli-27.3.1.mod/cli/vendor/gotest.tools/v3/fs/manifest_unix.go
+--- cli-27.3.1/cli/vendor/gotest.tools/v3/fs/manifest_unix.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/gotest.tools/v3/fs/manifest_unix.go	2024-10-31 20:43:27.179994047 +0800
+@@ -5,7 +5,7 @@
+ 
+ import (
+ 	"os"
+-	"runtime"
++	_ "runtime"
+ 	"syscall"
+ )
+ 
+@@ -14,7 +14,7 @@
+ var defaultSymlinkMode = os.ModeSymlink | 0777
+ 
+ func init() {
+-	switch runtime.GOOS {
++	switch "linux" {
+ 	case "darwin":
+ 		defaultSymlinkMode = os.ModeSymlink | 0755
+ 	}
+diff --color -uNr cli-27.3.1/cli/vendor/gotest.tools/v3/fs/report.go cli-27.3.1.mod/cli/vendor/gotest.tools/v3/fs/report.go
+--- cli-27.3.1/cli/vendor/gotest.tools/v3/fs/report.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/gotest.tools/v3/fs/report.go	2024-10-31 20:43:27.179994047 +0800
+@@ -6,7 +6,7 @@
+ 	"io"
+ 	"os"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 	"sort"
+ 	"strings"
+ 
+@@ -146,7 +146,7 @@
+ 	p := eqResource(x.resource, y.resource)
+ 	xTarget := x.target
+ 	yTarget := y.target
+-	if runtime.GOOS == "windows" {
++	if "linux" == "windows" {
+ 		xTarget = strings.ToLower(xTarget)
+ 		yTarget = strings.ToLower(yTarget)
+ 	}

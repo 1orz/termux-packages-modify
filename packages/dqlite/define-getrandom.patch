@@ -1,0 +1,15 @@
+diff --color -uNr dqlite-1.18.0/src/raft/uv.c dqlite-1.18.0.mod/src/raft/uv.c
+--- dqlite-1.18.0/src/raft/uv.c	2024-10-23 11:25:04.000000000 +0800
++++ dqlite-1.18.0.mod/src/raft/uv.c	2024-10-24 22:01:48.057370766 +0800
+@@ -26,6 +26,11 @@
+  * TODO: implement an exponential backoff instead.  */
+ #define CONNECT_RETRY_DELAY 1000
+ 
++#if defined __ANDROID__ && __ANDROID_API__ < 28
++#include <syscall.h>
++#define getrandom(buf,buflen,flags) syscall(SYS_getrandom,buf,buflen,flags)
++#endif
++
+ /* Cleans up files that are no longer used by the system */
+ static int uvMaintenance(const char *dir, char *errmsg)
+ {

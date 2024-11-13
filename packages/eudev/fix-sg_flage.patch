@@ -1,0 +1,19 @@
+diff --color -uNr eudev-3.2.14/src/cdrom_id/cdrom_id.c eudev-3.2.14.mod/src/cdrom_id/cdrom_id.c
+--- eudev-3.2.14/src/cdrom_id/cdrom_id.c	2023-10-04 01:22:44.000000000 +0800
++++ eudev-3.2.14.mod/src/cdrom_id/cdrom_id.c	2024-10-24 23:43:16.993368443 +0800
+@@ -103,6 +103,15 @@
+ #define ASC(errcode)        (((errcode) >> 8) & 0xFF)
+ #define ASCQ(errcode)        ((errcode) & 0xFF)
+ 
++// Define SG_FLAG_LUN_INHIBIT if it's not defined
++#ifndef SG_FLAG_LUN_INHIBIT
++#define SG_FLAG_LUN_INHIBIT 0
++#endif
++
++#ifndef SG_FLAG_DIRECT_IO
++#define SG_FLAG_DIRECT_IO 0
++#endif
++
+ static bool is_mounted(const char *device)
+ {
+         struct stat statbuf;

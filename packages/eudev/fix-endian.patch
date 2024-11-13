@@ -1,0 +1,79 @@
+diff --color -uNr eudev-3.2.14/src/shared/sparse-endian.h eudev-3.2.14.mod/src/shared/sparse-endian.h
+--- eudev-3.2.14/src/shared/sparse-endian.h	2021-10-17 05:13:28.000000000 +0800
++++ eudev-3.2.14.mod/src/shared/sparse-endian.h	2024-10-27 21:24:22.576265660 +0800
+@@ -18,11 +18,12 @@
+  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+  * IN THE SOFTWARE.
+  */
++
++
+ #pragma once
+ 
+-#include <byteswap.h>
+-#include <endian.h>
+ #include <stdint.h>
++#include <sys/endian.h> // For endianess macros
+ 
+ #ifdef __CHECKER__
+ #define __sd_bitwise __attribute__((__bitwise__))
+@@ -39,6 +40,34 @@
+ typedef uint64_t __sd_bitwise le64_t;
+ typedef uint64_t __sd_bitwise be64_t;
+ 
++// Byte-swap macros using built-ins or manual implementation
++#if defined(__clang__) || defined(__GNUC__)
++    #define bswap16(x) __builtin_bswap16(x)
++    #define bswap32(x) __builtin_bswap32(x)
++    #define bswap64(x) __builtin_bswap64(x)
++#else
++    // Manual byte-swap implementation as a fallback
++    static inline uint16_t bswap16(uint16_t x) {
++        return (x >> 8) | (x << 8);
++    }
++    static inline uint32_t bswap32(uint32_t x) {
++        return ((x >> 24) & 0x000000FF) |
++               ((x >> 8)  & 0x0000FF00) |
++               ((x << 8)  & 0x00FF0000) |
++               ((x << 24) & 0xFF000000);
++    }
++    static inline uint64_t bswap64(uint64_t x) {
++        return ((x >> 56) & 0x00000000000000FFULL) |
++               ((x >> 40) & 0x000000000000FF00ULL) |
++               ((x >> 24) & 0x0000000000FF0000ULL) |
++               ((x >> 8)  & 0x00000000FF000000ULL) |
++               ((x << 8)  & 0x000000FF00000000ULL) |
++               ((x << 24) & 0x0000FF0000000000ULL) |
++               ((x << 40) & 0x00FF000000000000ULL) |
++               ((x << 56) & 0xFF00000000000000ULL);
++    }
++#endif
++
+ #undef htobe16
+ #undef htole16
+ #undef be16toh
+@@ -53,9 +82,9 @@
+ #undef le64toh
+ 
+ #if __BYTE_ORDER == __LITTLE_ENDIAN
+-#define bswap_16_on_le(x) __bswap_16(x)
+-#define bswap_32_on_le(x) __bswap_32(x)
+-#define bswap_64_on_le(x) __bswap_64(x)
++#define bswap_16_on_le(x) bswap16(x)
++#define bswap_32_on_le(x) bswap32(x)
++#define bswap_64_on_le(x) bswap64(x)
+ #define bswap_16_on_be(x) (x)
+ #define bswap_32_on_be(x) (x)
+ #define bswap_64_on_be(x) (x)
+@@ -63,9 +92,9 @@
+ #define bswap_16_on_le(x) (x)
+ #define bswap_32_on_le(x) (x)
+ #define bswap_64_on_le(x) (x)
+-#define bswap_16_on_be(x) __bswap_16(x)
+-#define bswap_32_on_be(x) __bswap_32(x)
+-#define bswap_64_on_be(x) __bswap_64(x)
++#define bswap_16_on_be(x) bswap16(x)
++#define bswap_32_on_be(x) bswap32(x)
++#define bswap_64_on_be(x) bswap64(x)
+ #endif
+ 
+ static inline le16_t htole16(uint16_t value) { return (le16_t __sd_force) bswap_16_on_be(value); }

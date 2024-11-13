@@ -1,0 +1,12 @@
+diff --color -uNr squashfs-tools-4.6.1/squashfs-tools/unsquashfs.c squashfs-tools-4.6.1.mod/squashfs-tools/unsquashfs.c
+--- squashfs-tools-4.6.1/squashfs-tools/unsquashfs.c	2023-03-26 04:53:37.000000000 +0800
++++ squashfs-tools-4.6.1.mod/squashfs-tools/unsquashfs.c	2024-10-28 13:24:14.766636757 +0800
+@@ -1251,7 +1251,7 @@
+ 				goto failed;
+ 			}
+ 
+-			res = lutimes(pathname, times);
++			res = utimes(pathname, times);
+ 			if(res == -1) {
+ 				EXIT_UNSQUASH_STRICT("create_inode: failed to"
+ 					" set time on %s, because %s\n",

@@ -1,0 +1,15 @@
+--- tini-0.19.0/tini/CMakeLists.txt	2020-04-20 01:33:22.000000000 +0800
++++ tini-0.19.0.mod/tini/CMakeLists.txt	2024-11-03 07:56:20.086924534 +0800
+@@ -81,12 +81,9 @@
+ 
+ add_executable (tini src/tini.c)
+ 
+-add_executable (tini-static src/tini.c)
+-set_target_properties (tini-static PROPERTIES LINK_FLAGS "-Wl,--no-export-dynamic -static")
+ 
+ # Installation
+ install (TARGETS tini DESTINATION bin)
+-install (TARGETS tini-static DESTINATION bin)
+ 
+ # Packaging
+ include (InstallRequiredSystemLibraries)

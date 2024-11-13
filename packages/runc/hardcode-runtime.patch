@@ -1,0 +1,108 @@
+diff --color -uNr runc-1.2.0/runc/vendor/github.com/cilium/ebpf/internal/unix/types_other.go runc-1.2.0.mod/runc/vendor/github.com/cilium/ebpf/internal/unix/types_other.go
+--- runc-1.2.0/runc/vendor/github.com/cilium/ebpf/internal/unix/types_other.go	2024-10-22 06:21:47.000000000 +0800
++++ runc-1.2.0.mod/runc/vendor/github.com/cilium/ebpf/internal/unix/types_other.go	2024-11-01 10:18:09.011795045 +0800
+@@ -8,7 +8,7 @@
+ 	"syscall"
+ )
+ 
+-var errNonLinux = fmt.Errorf("unsupported platform %s/%s", runtime.GOOS, runtime.GOARCH)
++var errNonLinux = fmt.Errorf("unsupported platform %s/%s", "linux", runtime.GOARCH)
+ 
+ // Errnos are distinct and non-zero.
+ const (
+diff --color -uNr runc-1.2.0/runc/vendor/github.com/moby/sys/mountinfo/mountinfo_unsupported.go runc-1.2.0.mod/runc/vendor/github.com/moby/sys/mountinfo/mountinfo_unsupported.go
+--- runc-1.2.0/runc/vendor/github.com/moby/sys/mountinfo/mountinfo_unsupported.go	2024-10-22 06:21:47.000000000 +0800
++++ runc-1.2.0.mod/runc/vendor/github.com/moby/sys/mountinfo/mountinfo_unsupported.go	2024-11-01 10:18:09.015795045 +0800
+@@ -8,7 +8,7 @@
+ 	"runtime"
+ )
+ 
+-var errNotImplemented = fmt.Errorf("not implemented on %s/%s", runtime.GOOS, runtime.GOARCH)
++var errNotImplemented = fmt.Errorf("not implemented on %s/%s", "linux", runtime.GOARCH)
+ 
+ func parseMountTable(_ FilterFunc) ([]*Info, error) {
+ 	return nil, errNotImplemented
+diff --color -uNr runc-1.2.0/runc/vendor/github.com/sirupsen/logrus/text_formatter.go runc-1.2.0.mod/runc/vendor/github.com/sirupsen/logrus/text_formatter.go
+--- runc-1.2.0/runc/vendor/github.com/sirupsen/logrus/text_formatter.go	2024-10-22 06:21:47.000000000 +0800
++++ runc-1.2.0.mod/runc/vendor/github.com/sirupsen/logrus/text_formatter.go	2024-11-01 10:18:09.015795045 +0800
+@@ -115,7 +115,7 @@
+ }
+ 
+ func (f *TextFormatter) isColored() bool {
+-	isColored := f.ForceColors || (f.isTerminal && (runtime.GOOS != "windows"))
++	isColored := f.ForceColors || (f.isTerminal && ("linux" != "windows"))
+ 
+ 	if f.EnvironmentOverrideColors {
+ 		switch force, ok := os.LookupEnv("CLICOLOR_FORCE"); {
+diff --color -uNr runc-1.2.0/runc/vendor/github.com/urfave/cli/flag.go runc-1.2.0.mod/runc/vendor/github.com/urfave/cli/flag.go
+--- runc-1.2.0/runc/vendor/github.com/urfave/cli/flag.go	2024-10-22 06:21:47.000000000 +0800
++++ runc-1.2.0.mod/runc/vendor/github.com/urfave/cli/flag.go	2024-11-01 10:18:09.015795045 +0800
+@@ -5,7 +5,7 @@
+ 	"fmt"
+ 	"io/ioutil"
+ 	"reflect"
+-	"runtime"
++	_ "runtime"
+ 	"strconv"
+ 	"strings"
+ 	"syscall"
+@@ -191,7 +191,7 @@
+ 		prefix := "$"
+ 		suffix := ""
+ 		sep := ", $"
+-		if runtime.GOOS == "windows" {
++		if "linux" == "windows" {
+ 			prefix = "%"
+ 			suffix = "%"
+ 			sep = "%, %"
+diff --color -uNr runc-1.2.0/runc/vendor/golang.org/x/sys/unix/sockcmsg_unix_other.go runc-1.2.0.mod/runc/vendor/golang.org/x/sys/unix/sockcmsg_unix_other.go
+--- runc-1.2.0/runc/vendor/golang.org/x/sys/unix/sockcmsg_unix_other.go	2024-10-22 06:21:47.000000000 +0800
++++ runc-1.2.0.mod/runc/vendor/golang.org/x/sys/unix/sockcmsg_unix_other.go	2024-11-01 10:18:09.015795045 +0800
+@@ -16,7 +16,7 @@
+ 
+ 	// dragonfly needs to check ABI version at runtime, see cmsgAlignOf in
+ 	// sockcmsg_dragonfly.go
+-	switch runtime.GOOS {
++	switch "linux" {
+ 	case "aix":
+ 		// There is no alignment on AIX.
+ 		salign = 1
+@@ -33,7 +33,7 @@
+ 			salign = 8
+ 		}
+ 		// NetBSD aarch64 requires 128-bit alignment.
+-		if runtime.GOOS == "netbsd" && runtime.GOARCH == "arm64" {
++		if "linux" == "netbsd" && runtime.GOARCH == "arm64" {
+ 			salign = 16
+ 		}
+ 	case "zos":
+diff --color -uNr runc-1.2.0/runc/vendor/golang.org/x/sys/unix/syscall_bsd.go runc-1.2.0.mod/runc/vendor/golang.org/x/sys/unix/syscall_bsd.go
+--- runc-1.2.0/runc/vendor/golang.org/x/sys/unix/syscall_bsd.go	2024-10-22 06:21:47.000000000 +0800
++++ runc-1.2.0.mod/runc/vendor/golang.org/x/sys/unix/syscall_bsd.go	2024-11-01 10:18:09.015795045 +0800
+@@ -13,7 +13,7 @@
+ package unix
+ 
+ import (
+-	"runtime"
++	_ "runtime"
+ 	"syscall"
+ 	"unsafe"
+ )
+@@ -274,7 +274,7 @@
+ 	if err != nil {
+ 		return
+ 	}
+-	if (runtime.GOOS == "darwin" || runtime.GOOS == "ios") && len == 0 {
++	if ("linux" == "darwin" || "linux" == "ios") && len == 0 {
+ 		// Accepted socket has no address.
+ 		// This is likely due to a bug in xnu kernels,
+ 		// where instead of ECONNABORTED error socket
+@@ -298,7 +298,7 @@
+ 	}
+ 	// TODO(jsing): DragonFly has a "bug" (see issue 3349), which should be
+ 	// reported upstream.
+-	if runtime.GOOS == "dragonfly" && rsa.Addr.Family == AF_UNSPEC && rsa.Addr.Len == 0 {
++	if "linux" == "dragonfly" && rsa.Addr.Family == AF_UNSPEC && rsa.Addr.Len == 0 {
+ 		rsa.Addr.Family = AF_UNIX
+ 		rsa.Addr.Len = SizeofSockaddrUnix
+ 	}

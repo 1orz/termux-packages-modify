@@ -1,0 +1,194 @@
+diff --color -uNr lxd-6.1/lxd/client/connection.go lxd-6.1.mod/lxd/client/connection.go
+--- lxd-6.1/lxd/client/connection.go	2024-07-08 15:45:26.000000000 +0800
++++ lxd-6.1.mod/lxd/client/connection.go	2024-10-30 23:06:49.919079029 +0800
+@@ -196,7 +196,7 @@
+ 			} else {
+ 				path = "/var/snap/lxd/common/lxd/unix.socket"
+ 				if !shared.PathIsWritable(path) {
+-					path = "/var/lib/lxd/unix.socket"
++					path = "/data/local/tmp/lxd/lib/lxd/unix.socket"
+ 				}
+ 			}
+ 		}
+diff --color -uNr lxd-6.1/lxd/lxc/config/config.go lxd-6.1.mod/lxd/lxc/config/config.go
+--- lxd-6.1/lxd/lxc/config/config.go	2024-07-08 15:45:26.000000000 +0800
++++ lxd-6.1.mod/lxd/lxc/config/config.go	2024-10-30 23:06:49.919079029 +0800
+@@ -42,7 +42,7 @@
+ 
+ // GlobalConfigPath returns a joined path of the global configuration directory and passed arguments.
+ func (c *Config) GlobalConfigPath(paths ...string) string {
+-	configDir := "/etc/lxd"
++	configDir := "@TERMUX_PREFIX@/etc/lxd"
+ 	if os.Getenv("LXD_GLOBAL_CONF") != "" {
+ 		configDir = os.Getenv("LXD_GLOBAL_CONF")
+ 	}
+diff --color -uNr lxd-6.1/lxd/lxc-to-lxd/config.go lxd-6.1.mod/lxd/lxc-to-lxd/config.go
+--- lxd-6.1/lxd/lxc-to-lxd/config.go	2024-07-08 15:45:26.000000000 +0800
++++ lxd-6.1.mod/lxd/lxc-to-lxd/config.go	2024-10-30 23:06:49.919079029 +0800
+@@ -160,7 +160,7 @@
+ 		// Parse user-added includes
+ 		case "lxc.include":
+ 			// Ignore our own default configs
+-			if strings.HasPrefix(value, "/usr/share/lxc/config/") {
++			if strings.HasPrefix(value, "@TERMUX_PREFIX@/share/lxc/config/") {
+ 				continue
+ 			}
+ 
+diff --color -uNr lxd-6.1/lxd/lxc-to-lxd/main_migrate.go lxd-6.1.mod/lxd/lxc-to-lxd/main_migrate.go
+--- lxd-6.1/lxd/lxc-to-lxd/main_migrate.go	2024-07-08 15:45:26.000000000 +0800
++++ lxd-6.1.mod/lxd/lxc-to-lxd/main_migrate.go	2024-10-30 23:06:49.915079029 +0800
+@@ -316,7 +316,7 @@
+ 		value = getConfig(conf, "lxc.seccomp")
+ 	}
+ 
+-	if value != nil && value[0] != "/usr/share/lxc/config/common.seccomp" {
++	if value != nil && value[0] != "@TERMUX_PREFIX@/share/lxc/config/common.seccomp" {
+ 		return fmt.Errorf("Custom seccomp profiles aren't supported")
+ 	}
+ 
+diff --color -uNr lxd-6.1/lxd/lxd/instance/drivers/driver_lxc.go lxd-6.1.mod/lxd/lxd/instance/drivers/driver_lxc.go
+--- lxd-6.1/lxd/lxd/instance/drivers/driver_lxc.go	2024-07-08 15:45:26.000000000 +0800
++++ lxd-6.1.mod/lxd/lxd/instance/drivers/driver_lxc.go	2024-10-30 23:06:49.915079029 +0800
+@@ -835,7 +835,7 @@
+ 	// For lxcfs
+ 	templateConfDir := os.Getenv("LXD_LXC_TEMPLATE_CONFIG")
+ 	if templateConfDir == "" {
+-		templateConfDir = "/usr/share/lxc/config"
++		templateConfDir = "@TERMUX_PREFIX@/share/lxc/config"
+ 	}
+ 
+ 	if shared.PathExists(fmt.Sprintf("%s/common.conf.d/", templateConfDir)) {
+@@ -1055,7 +1055,7 @@
+ 	if shared.IsTrue(d.expandedConfig["nvidia.runtime"]) {
+ 		hookDir := os.Getenv("LXD_LXC_HOOK")
+ 		if hookDir == "" {
+-			hookDir = "/usr/share/lxc/hooks"
++			hookDir = "@TERMUX_PREFIX@/share/lxc/hooks"
+ 		}
+ 
+ 		hookPath := filepath.Join(hookDir, "nvidia")
+diff --color -uNr lxd-6.1/lxd/lxd/resources/storage.go lxd-6.1.mod/lxd/lxd/resources/storage.go
+--- lxd-6.1/lxd/lxd/resources/storage.go	2024-07-08 15:45:26.000000000 +0800
++++ lxd-6.1.mod/lxd/lxd/resources/storage.go	2024-10-30 23:06:49.911079029 +0800
+@@ -19,7 +19,7 @@
+ 
+ var devDiskByPath = "/dev/disk/by-path"
+ var devDiskByID = "/dev/disk/by-id"
+-var runUdevData = "/run/udev/data"
++var runUdevData = "@TERMUX_PREFIX@/var/run/udev/data"
+ var sysClassBlock = "/sys/class/block"
+ var procSelfMountInfo = "/proc/self/mountinfo"
+ 
+diff --color -uNr lxd-6.1/lxd/lxd/storage/drivers/driver_zfs_volumes.go lxd-6.1.mod/lxd/lxd/storage/drivers/driver_zfs_volumes.go
+--- lxd-6.1/lxd/lxd/storage/drivers/driver_zfs_volumes.go	2024-07-08 15:45:26.000000000 +0800
++++ lxd-6.1.mod/lxd/lxd/storage/drivers/driver_zfs_volumes.go	2024-10-30 23:06:49.911079029 +0800
+@@ -1932,7 +1932,7 @@
+ 	}
+ 
+ 	// Locate zvol_id.
+-	zvolid := "/lib/udev/zvol_id"
++	zvolid := "@TERMUX_PREFIX@/lib/udev/zvol_id"
+ 	if !shared.PathExists(zvolid) {
+ 		var err error
+ 
+diff --color -uNr lxd-6.1/lxd/shared/util.go lxd-6.1.mod/lxd/shared/util.go
+--- lxd-6.1/lxd/shared/util.go	2024-07-08 15:45:26.000000000 +0800
++++ lxd-6.1.mod/lxd/shared/util.go	2024-10-30 23:06:49.903079029 +0800
+@@ -221,7 +221,7 @@
+ func VarPath(path ...string) string {
+ 	varDir := os.Getenv("LXD_DIR")
+ 	if varDir == "" {
+-		varDir = "/var/lib/lxd"
++		varDir = "/data/local/tmp/lxd/lib/lxd"
+ 	}
+ 
+ 	items := []string{varDir}
+@@ -233,7 +233,7 @@
+ // set, this path is $LXD_DIR/cache, otherwise it is /var/cache/lxd.
+ func CachePath(path ...string) string {
+ 	varDir := os.Getenv("LXD_DIR")
+-	logDir := "/var/cache/lxd"
++	logDir := "/data/local/tmp/lxd/cache/lxd"
+ 	if varDir != "" {
+ 		logDir = filepath.Join(varDir, "cache")
+ 	}
+@@ -247,7 +247,7 @@
+ // set, this path is $LXD_DIR/logs, otherwise it is /var/log/lxd.
+ func LogPath(path ...string) string {
+ 	varDir := os.Getenv("LXD_DIR")
+-	logDir := "/var/log/lxd"
++	logDir := "/data/local/tmp/lxd/log/lxd"
+ 	if varDir != "" {
+ 		logDir = filepath.Join(varDir, "logs")
+ 	}
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/go-acme/lego/v4/challenge/dns01/nameserver.go lxd-6.1.mod/lxd/vendor/github.com/go-acme/lego/v4/challenge/dns01/nameserver.go
+--- lxd-6.1/lxd/vendor/github.com/go-acme/lego/v4/challenge/dns01/nameserver.go	2024-07-08 18:32:22.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/go-acme/lego/v4/challenge/dns01/nameserver.go	2024-10-30 23:06:49.903079029 +0800
+@@ -14,7 +14,7 @@
+ 	"github.com/miekg/dns"
+ )
+ 
+-const defaultResolvConf = "/etc/resolv.conf"
++const defaultResolvConf = "@TERMUX_PREFIX@/etc/resolv.conf"
+ 
+ var (
+ 	fqdnSoaCache   = map[string]*soaCacheEntry{}
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/rs/xid/hostid_linux.go lxd-6.1.mod/lxd/vendor/github.com/rs/xid/hostid_linux.go
+--- lxd-6.1/lxd/vendor/github.com/rs/xid/hostid_linux.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/rs/xid/hostid_linux.go	2024-10-30 23:06:49.903079029 +0800
+@@ -5,7 +5,7 @@
+ import "io/ioutil"
+ 
+ func readPlatformMachineID() (string, error) {
+-	b, err := ioutil.ReadFile("/etc/machine-id")
++	b, err := ioutil.ReadFile("@TERMUX_PREFIX@/etc/machine-id")
+ 	if err != nil || len(b) == 0 {
+ 		b, err = ioutil.ReadFile("/sys/class/dmi/id/product_uuid")
+ 	}
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/vishvananda/netns/netns_linux.go lxd-6.1.mod/lxd/vendor/github.com/vishvananda/netns/netns_linux.go
+--- lxd-6.1/lxd/vendor/github.com/vishvananda/netns/netns_linux.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/vishvananda/netns/netns_linux.go	2024-10-30 23:06:49.903079029 +0800
+@@ -21,7 +21,7 @@
+ 	CLONE_IO      = unix.CLONE_IO      /* Get io context */
+ )
+ 
+-const bindMountPath = "/run/netns" /* Bind mount path for named netns */
++const bindMountPath = "@TERMUX_PREFIX@/var/run/netns" /* Bind mount path for named netns */
+ 
+ // Setns sets namespace using golang.org/x/sys/unix.Setns.
+ //
+@@ -165,7 +165,7 @@
+ // borrowed from docker/utils/utils.go
+ // modified to get the docker pid instead of using /proc/self
+ func getDockerCgroup(cgroupVer int, cgroupType string) (string, error) {
+-	dockerpid, err := os.ReadFile("/var/run/docker.pid")
++	dockerpid, err := os.ReadFile("/data/local/tmp/lxd/run/docker.pid")
+ 	if err != nil {
+ 		return "", err
+ 	}
+diff --color -uNr lxd-6.1/lxd/vendor/go.opentelemetry.io/otel/sdk/resource/host_id.go lxd-6.1.mod/lxd/vendor/go.opentelemetry.io/otel/sdk/resource/host_id.go
+--- lxd-6.1/lxd/vendor/go.opentelemetry.io/otel/sdk/resource/host_id.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/go.opentelemetry.io/otel/sdk/resource/host_id.go	2024-10-30 23:06:49.891079029 +0800
+@@ -35,7 +35,7 @@
+ // execute `kenv -q smbios.system.uuid`. If neither location yields an id an
+ // error will be returned.
+ func (r *hostIDReaderBSD) read() (string, error) {
+-	if result, err := r.readFile("/etc/hostid"); err == nil {
++	if result, err := r.readFile("@TERMUX_PREFIX@/etc/hostid"); err == nil {
+ 		return strings.TrimSpace(result), nil
+ 	}
+ 
+@@ -82,11 +82,11 @@
+ // /var/lib/dbus/machine-id. If neither location yields an ID an error will
+ // be returned.
+ func (r *hostIDReaderLinux) read() (string, error) {
+-	if result, err := r.readFile("/etc/machine-id"); err == nil {
++	if result, err := r.readFile("@TERMUX_PREFIX@/etc/machine-id"); err == nil {
+ 		return strings.TrimSpace(result), nil
+ 	}
+ 
+-	if result, err := r.readFile("/var/lib/dbus/machine-id"); err == nil {
++	if result, err := r.readFile("@TERMUX_PREFIX@/var/lib/dbus/machine-id"); err == nil {
+ 		return strings.TrimSpace(result), nil
+ 	}
+ 

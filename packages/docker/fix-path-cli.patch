@@ -1,0 +1,92 @@
+diff --color -uNr cli-27.3.1/cli/cli-plugins/manager/manager_unix.go cli-27.3.1.mod/cli/cli-plugins/manager/manager_unix.go
+--- cli-27.3.1/cli/cli-plugins/manager/manager_unix.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/cli-plugins/manager/manager_unix.go	2024-10-30 21:29:19.835108987 +0800
+@@ -13,8 +13,8 @@
+ //
+ // [ConfigFile.CLIPluginsExtraDirs]: https://pkg.go.dev/github.com/docker/cli@v26.1.4+incompatible/cli/config/configfile#ConfigFile.CLIPluginsExtraDirs
+ var defaultSystemPluginDirs = []string{
+-	"/usr/local/lib/docker/cli-plugins",
+-	"/usr/local/libexec/docker/cli-plugins",
+-	"/usr/lib/docker/cli-plugins",
+-	"/usr/libexec/docker/cli-plugins",
++	"@TERMUX_PREFIX@/lib/docker/cli-plugins",
++	"@TERMUX_PREFIX@/libexec/docker/cli-plugins",
++	"@TERMUX_PREFIX@/lib/docker/cli-plugins",
++	"@TERMUX_PREFIX@/libexec/docker/cli-plugins",
+ }
+diff --color -uNr cli-27.3.1/cli/opts/hosts.go cli-27.3.1.mod/cli/opts/hosts.go
+--- cli-27.3.1/cli/opts/hosts.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/opts/hosts.go	2024-10-30 21:29:19.831108987 +0800
+@@ -17,7 +17,7 @@
+ 	defaultTLSHTTPPort = "2376" // Default TLS encrypted HTTP Port
+ 	// defaultUnixSocket Path for the unix socket.
+ 	// Docker daemon by default always listens on the default unix socket
+-	defaultUnixSocket = "/var/run/docker.sock"
++	defaultUnixSocket = "/data/local/tmp/docker/run/docker.sock"
+ 	// defaultTCPHost constant defines the default host string used by docker on Windows
+ 	defaultTCPHost = "tcp://" + defaultHTTPHost + ":" + defaultHTTPPort
+ 	// DefaultTLSHost constant defines the default host string used by docker for TLS sockets
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/docker/docker/registry/config_unix.go cli-27.3.1.mod/cli/vendor/github.com/docker/docker/registry/config_unix.go
+--- cli-27.3.1/cli/vendor/github.com/docker/docker/registry/config_unix.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/docker/docker/registry/config_unix.go	2024-10-30 21:29:19.831108987 +0800
+@@ -5,7 +5,7 @@
+ // defaultCertsDir is the platform-specific default directory where certificates
+ // are stored. On Linux, it may be overridden through certsDir, for example, when
+ // running in rootless mode.
+-const defaultCertsDir = "/etc/docker/certs.d"
++const defaultCertsDir = "@TERMUX_PREFIX@/etc/docker/certs.d"
+ 
+ // cleanPath is used to ensure that a directory name is valid on the target
+ // platform. It will be passed in something *similar* to a URL such as
+diff --color -uNr cli-27.3.1/cli/vendor/go.opentelemetry.io/otel/sdk/resource/host_id.go cli-27.3.1.mod/cli/vendor/go.opentelemetry.io/otel/sdk/resource/host_id.go
+--- cli-27.3.1/cli/vendor/go.opentelemetry.io/otel/sdk/resource/host_id.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/go.opentelemetry.io/otel/sdk/resource/host_id.go	2024-10-30 21:29:19.831108987 +0800
+@@ -46,7 +46,7 @@
+ // execute `kenv -q smbios.system.uuid`. If neither location yields an id an
+ // error will be returned.
+ func (r *hostIDReaderBSD) read() (string, error) {
+-	if result, err := r.readFile("/etc/hostid"); err == nil {
++	if result, err := r.readFile("@TERMUX_PREFIX@/etc/hostid"); err == nil {
+ 		return strings.TrimSpace(result), nil
+ 	}
+ 
+@@ -93,15 +93,15 @@
+ // /var/lib/dbus/machine-id. If neither location yields an ID an error will
+ // be returned.
+ func (r *hostIDReaderLinux) read() (string, error) {
+-	if result, err := r.readFile("/etc/machine-id"); err == nil {
++	if result, err := r.readFile("@TERMUX_PREFIX@/etc/machine-id"); err == nil {
+ 		return strings.TrimSpace(result), nil
+ 	}
+ 
+-	if result, err := r.readFile("/var/lib/dbus/machine-id"); err == nil {
++	if result, err := r.readFile("@TERMUX_PREFIX@/var/lib/dbus/machine-id"); err == nil {
+ 		return strings.TrimSpace(result), nil
+ 	}
+ 
+-	return "", errors.New("host id not found in: /etc/machine-id or /var/lib/dbus/machine-id")
++	return "", errors.New("host id not found in: @TERMUX_PREFIX@/etc/machine-id or @TERMUX_PREFIX@/var/lib/dbus/machine-id")
+ }
+ 
+ type hostIDDetector struct{}
+diff --color -uNr cli-27.3.1/cli/vendor/go.opentelemetry.io/otel/sdk/resource/os_release_unix.go cli-27.3.1.mod/cli/vendor/go.opentelemetry.io/otel/sdk/resource/os_release_unix.go
+--- cli-27.3.1/cli/vendor/go.opentelemetry.io/otel/sdk/resource/os_release_unix.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/go.opentelemetry.io/otel/sdk/resource/os_release_unix.go	2024-11-04 10:47:13.605223002 +0800
+@@ -47,7 +47,7 @@
+ // files, according to their order of preference. If no file can be opened, it
+ // returns an error.
+ func getOSReleaseFile() (*os.File, error) {
+-	return getFirstAvailableFile([]string{"/etc/os-release", "/usr/lib/os-release"})
++	return getFirstAvailableFile([]string{"@TERMUX_PREFIX@/etc/os-release", "@TERMUX_PREFIX@/lib/os-release"})
+ }
+ 
+ // parseOSReleaseFile process the file pointed by `file` as an os-release file and
+diff --color -uNr cli-27.3.1/cli/vendor/github.com/docker/docker/client/client_unix.go cli-27.3.1.mod/cli/vendor/github.com/docker/docker/client/client_unix.go
+--- cli-27.3.1/cli/vendor/github.com/docker/docker/client/client_unix.go	2024-09-20 19:01:47.000000000 +0800
++++ cli-27.3.1.mod/cli/vendor/github.com/docker/docker/client/client_unix.go	2024-11-05 08:36:46.145100781 +0800
+@@ -4,4 +4,4 @@
+ 
+ // DefaultDockerHost defines OS-specific default host if the DOCKER_HOST
+ // (EnvOverrideHost) environment variable is unset or empty.
+-const DefaultDockerHost = "unix:///var/run/docker.sock"
++const DefaultDockerHost = "unix:///data/local/tmp/docker/run/docker.sock"

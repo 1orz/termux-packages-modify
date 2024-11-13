@@ -1,0 +1,206 @@
+diff --color -uNr eudev-3.2.14/src/collect/collect.c eudev-3.2.14.mod/src/collect/collect.c
+--- eudev-3.2.14/src/collect/collect.c	2023-10-04 01:22:44.000000000 +0800
++++ eudev-3.2.14.mod/src/collect/collect.c	2024-10-24 23:47:03.085368357 +0800
+@@ -84,7 +84,7 @@
+                "  invoked for each ID in <idlist>) collect returns 0, the\n"
+                "  number of missing IDs otherwise.\n"
+                "  On error a negative number is returned.\n\n"
+-               , program_invocation_short_name);
++               , getprogname());
+ }
+ 
+ /*
+diff --color -uNr eudev-3.2.14/src/dmi_memory_id/dmi_memory_id.c eudev-3.2.14.mod/src/dmi_memory_id/dmi_memory_id.c
+--- eudev-3.2.14/src/dmi_memory_id/dmi_memory_id.c	2023-10-04 01:22:44.000000000 +0800
++++ eudev-3.2.14.mod/src/dmi_memory_id/dmi_memory_id.c	2024-10-24 23:48:35.337368321 +0800
+@@ -645,7 +645,7 @@
+         printf("Usage: %s [options]\n"
+                " -F,--from-dump FILE   read DMI information from a binary file\n"
+                " -h,--help             print this help text\n\n",
+-               program_invocation_short_name);
++               getprogname());
+         return 0;
+ }
+ 
+diff --color -uNr eudev-3.2.14/src/fido_id/fido_id.c eudev-3.2.14.mod/src/fido_id/fido_id.c
+--- eudev-3.2.14/src/fido_id/fido_id.c	2023-10-04 01:22:44.000000000 +0800
++++ eudev-3.2.14.mod/src/fido_id/fido_id.c	2024-10-24 23:49:49.921368293 +0800
+@@ -52,7 +52,7 @@
+                 return 1;
+ 
+         if (argc > 2)
+-                return log_error_errno(/*SYNTHETIC_ERRNO*/(EINVAL), "Usage: %s [SYSFS_PATH]", program_invocation_short_name);
++                return log_error_errno(/*SYNTHETIC_ERRNO*/(EINVAL), "Usage: %s [SYSFS_PATH]", getprogname());
+ 
+         if (argc == 1) {
+                 device = udev_device_new_from_environment(udev);
+diff --color -uNr eudev-3.2.14/src/scsi_id/scsi_id.c eudev-3.2.14.mod/src/scsi_id/scsi_id.c
+--- eudev-3.2.14/src/scsi_id/scsi_id.c	2023-10-04 01:22:44.000000000 +0800
++++ eudev-3.2.14.mod/src/scsi_id/scsi_id.c	2024-10-24 23:53:08.841368217 +0800
+@@ -316,7 +316,7 @@
+                "  -u --replace-whitespace          Replace all whitespace by underscores\n"
+                "  -v --verbose                     Verbose logging\n"
+                "  -x --export                      Print values as environment keys\n"
+-               , program_invocation_short_name);
++               , getprogname());
+ 
+ }
+ 
+diff --color -uNr eudev-3.2.14/src/shared/log.c eudev-3.2.14.mod/src/shared/log.c
+--- eudev-3.2.14/src/shared/log.c	2023-10-04 01:22:44.000000000 +0800
++++ eudev-3.2.14.mod/src/shared/log.c	2024-10-24 23:45:31.229368392 +0800
+@@ -24,6 +24,7 @@
+ #include <fcntl.h>
+ #include <sys/socket.h>
+ #include <sys/un.h>
++#include <stdlib.h>
+ #include <stddef.h>
+ #include <string.h>
+ 
+@@ -335,7 +336,7 @@
+ 
+         IOVEC_SET_STRING(iovec[0], header_priority);
+         IOVEC_SET_STRING(iovec[1], header_time);
+-        IOVEC_SET_STRING(iovec[2], program_invocation_short_name);
++        IOVEC_SET_STRING(iovec[2], getprogname());
+         IOVEC_SET_STRING(iovec[3], header_pid);
+         IOVEC_SET_STRING(iovec[4], buffer);
+ 
+@@ -383,7 +384,7 @@
+         char_array_0(header_pid);
+ 
+         IOVEC_SET_STRING(iovec[0], header_priority);
+-        IOVEC_SET_STRING(iovec[1], program_invocation_short_name);
++        IOVEC_SET_STRING(iovec[1], getprogname());
+         IOVEC_SET_STRING(iovec[2], header_pid);
+         IOVEC_SET_STRING(iovec[3], buffer);
+         IOVEC_SET_STRING(iovec[4], "\n");
+diff --color -uNr eudev-3.2.14/src/udev/udevadm.c eudev-3.2.14.mod/src/udev/udevadm.c
+--- eudev-3.2.14/src/udev/udevadm.c	2023-10-04 01:22:44.000000000 +0800
++++ eudev-3.2.14.mod/src/udev/udevadm.c	2024-10-24 23:45:31.229368392 +0800
+@@ -62,7 +62,7 @@
+         printf("%s [--help] [--version] [--debug] COMMAND [COMMAND OPTIONS]\n\n"
+                "Send control commands or test the device manager.\n\n"
+                "Commands:\n"
+-               , program_invocation_short_name);
++               , getprogname());
+ 
+         for (i = 0; i < ELEMENTSOF(udevadm_cmds); i++)
+                 if (udevadm_cmds[i]->help != NULL)
+@@ -128,7 +128,7 @@
+                                 goto out;
+                         }
+ 
+-        fprintf(stderr, "%s: missing or unknown command\n", program_invocation_short_name);
++        fprintf(stderr, "%s: missing or unknown command\n", getprogname());
+         rc = 2;
+ out:
+         mac_selinux_finish();
+diff --color -uNr eudev-3.2.14/src/udev/udevadm-control.c eudev-3.2.14.mod/src/udev/udevadm-control.c
+--- eudev-3.2.14/src/udev/udevadm-control.c	2021-08-21 01:28:40.000000000 +0800
++++ eudev-3.2.14.mod/src/udev/udevadm-control.c	2024-10-24 23:45:31.229368392 +0800
+@@ -41,7 +41,7 @@
+                "  -p --property=KEY=VALUE  Set a global property for all events\n"
+                "  -m --children-max=N      Maximum number of children\n"
+                "     --timeout=SECONDS     Maximum time to block for a reply\n"
+-               , program_invocation_short_name);
++               , getprogname());
+ }
+ 
+ static int adm_control(struct udev *udev, int argc, char *argv[]) {
+diff --color -uNr eudev-3.2.14/src/udev/udevadm-info.c eudev-3.2.14.mod/src/udev/udevadm-info.c
+--- eudev-3.2.14/src/udev/udevadm-info.c	2023-10-04 01:22:44.000000000 +0800
++++ eudev-3.2.14.mod/src/udev/udevadm-info.c	2024-10-24 23:45:31.229368392 +0800
+@@ -279,7 +279,7 @@
+                "  -P --export-prefix          Export the key name with a prefix\n"
+                "  -e --export-db              Export the content of the udev database\n"
+                "  -c --cleanup-db             Clean up the udev database\n"
+-               , program_invocation_short_name);
++               , getprogname());
+ }
+ 
+ static int uinfo(struct udev *udev, int argc, char *argv[]) {
+diff --color -uNr eudev-3.2.14/src/udev/udevadm-monitor.c eudev-3.2.14.mod/src/udev/udevadm-monitor.c
+--- eudev-3.2.14/src/udev/udevadm-monitor.c	2023-10-04 01:22:44.000000000 +0800
++++ eudev-3.2.14.mod/src/udev/udevadm-monitor.c	2024-10-24 23:45:31.229368392 +0800
+@@ -73,7 +73,7 @@
+                "  -u --udev                                Print udev events\n"
+                "  -s --subsystem-match=SUBSYSTEM[/DEVTYPE] Filter events by subsystem\n"
+                "  -t --tag-match=TAG                       Filter events by tag\n"
+-               , program_invocation_short_name);
++               , getprogname());
+ }
+ 
+ static int adm_monitor(struct udev *udev, int argc, char *argv[]) {
+diff --color -uNr eudev-3.2.14/src/udev/udevadm-settle.c eudev-3.2.14.mod/src/udev/udevadm-settle.c
+--- eudev-3.2.14/src/udev/udevadm-settle.c	2021-08-21 01:28:40.000000000 +0800
++++ eudev-3.2.14.mod/src/udev/udevadm-settle.c	2024-10-24 23:45:31.229368392 +0800
+@@ -43,7 +43,7 @@
+                "     --version              Show package version\n"
+                "  -t --timeout=SECONDS      Maximum time to wait for events\n"
+                "  -E --exit-if-exists=FILE  Stop waiting if file exists\n"
+-               , program_invocation_short_name);
++               , getprogname());
+ }
+ 
+ static int adm_settle(struct udev *udev, int argc, char *argv[]) {
+diff --color -uNr eudev-3.2.14/src/udev/udevadm-test-builtin.c eudev-3.2.14.mod/src/udev/udevadm-test-builtin.c
+--- eudev-3.2.14/src/udev/udevadm-test-builtin.c	2021-08-21 01:28:40.000000000 +0800
++++ eudev-3.2.14.mod/src/udev/udevadm-test-builtin.c	2024-10-24 23:45:31.229368392 +0800
+@@ -39,7 +39,7 @@
+                "  -h --help     Print this message\n"
+                "     --version  Print version of the program\n\n"
+                "Commands:\n"
+-               , program_invocation_short_name);
++               , getprogname());
+ 
+         udev_builtin_list(udev);
+ }
+diff --color -uNr eudev-3.2.14/src/udev/udevadm-test.c eudev-3.2.14.mod/src/udev/udevadm-test.c
+--- eudev-3.2.14/src/udev/udevadm-test.c	2021-08-21 01:28:40.000000000 +0800
++++ eudev-3.2.14.mod/src/udev/udevadm-test.c	2024-10-24 23:45:31.229368392 +0800
+@@ -39,7 +39,7 @@
+                "     --version                         Show package version\n"
+                "  -a --action=ACTION                   Set action string\n"
+                "  -N --resolve-names=early|late|never  When to resolve names\n"
+-               , program_invocation_short_name);
++               , getprogname());
+ }
+ 
+ static int adm_test(struct udev *udev, int argc, char *argv[]) {
+diff --color -uNr eudev-3.2.14/src/udev/udevadm-trigger.c eudev-3.2.14.mod/src/udev/udevadm-trigger.c
+--- eudev-3.2.14/src/udev/udevadm-trigger.c	2021-08-21 01:28:40.000000000 +0800
++++ eudev-3.2.14.mod/src/udev/udevadm-trigger.c	2024-10-24 23:45:31.229368392 +0800
+@@ -92,7 +92,7 @@
+                "  -y --sysname-match=NAME           Trigger devices with this /sys path\n"
+                "     --name-match=NAME              Trigger devices with this /dev name\n"
+                "  -b --parent-match=NAME            Trigger devices with that parent device\n"
+-               , program_invocation_short_name);
++               , getprogname());
+ }
+ 
+ static int adm_trigger(struct udev *udev, int argc, char *argv[]) {
+diff --color -uNr eudev-3.2.14/src/udev/udevd.c eudev-3.2.14.mod/src/udev/udevd.c
+--- eudev-3.2.14/src/udev/udevd.c	2023-10-06 01:19:20.000000000 +0800
++++ eudev-3.2.14.mod/src/udev/udevd.c	2024-10-24 23:45:31.229368392 +0800
+@@ -1041,7 +1041,7 @@
+                "  -t --event-timeout=SECONDS  Seconds to wait before terminating an event\n"
+                "  -N --resolve-names=early|late|never\n"
+                "                              When to resolve users and groups\n"
+-               , program_invocation_short_name);
++               , getprogname());
+ }
+ 
+ static int parse_argv(int argc, char *argv[]) {
+diff --color -uNr eudev-3.2.14/src/v4l_id/v4l_id.c eudev-3.2.14.mod/src/v4l_id/v4l_id.c
+--- eudev-3.2.14/src/v4l_id/v4l_id.c	2023-10-04 01:22:44.000000000 +0800
++++ eudev-3.2.14.mod/src/v4l_id/v4l_id.c	2024-10-24 23:51:42.393368250 +0800
+@@ -50,7 +50,7 @@
+                         printf("%s [-h,--help] <device file>\n\n"
+                                "Video4Linux device identification.\n\n"
+                                "  -h  Print this message\n"
+-                               , program_invocation_short_name);
++                               , getprogname());
+                         return 0;
+                 case '?':
+                         return -EINVAL;

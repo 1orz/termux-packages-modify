@@ -1,0 +1,12 @@
+diff --color -uNr lxd-6.1/lxd/lxd/include/lxd_posix_acl_xattr.h lxd-6.1.mod/lxd/lxd/include/lxd_posix_acl_xattr.h
+--- lxd-6.1/lxd/lxd/include/lxd_posix_acl_xattr.h	2024-10-25 14:25:45.199450434 +0800
++++ lxd-6.1.mod/lxd/lxd/include/lxd_posix_acl_xattr.h	2024-10-25 14:34:17.635450238 +0800
+@@ -24,7 +24,7 @@
+ #define POSIX_ACL_XATTR_VERSION	0x0002
+ 
+ /* An undefined entry e_id value */
+-#define ACL_UNDEFINED_ID	(-1)
++// #define ACL_UNDEFINED_ID	(-1)
+ 
+ struct posix_acl_xattr_entry {
+ 	__le16			e_tag;

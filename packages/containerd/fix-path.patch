@@ -1,0 +1,348 @@
+diff --color -uNr containerd-2.0.0/cmd/containerd-shim-runc-v2/process/utils.go containerd-2.0.0.mod/cmd/containerd-shim-runc-v2/process/utils.go
+--- containerd-2.0.0/cmd/containerd-shim-runc-v2/process/utils.go	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/cmd/containerd-shim-runc-v2/process/utils.go	2024-11-09 12:39:28.450503551 +0800
+@@ -36,7 +36,7 @@
+ 
+ const (
+ 	// RuncRoot is the path to the root runc state directory
+-	RuncRoot = "/run/containerd/runc"
++	RuncRoot = "/data/local/tmp/docker/containerd/runc"
+ 	// InitPidFile name of the file that contains the init pid
+ 	InitPidFile = "init.pid"
+ )
+diff --color -uNr containerd-2.0.0/cmd/containerd-stress/main.go containerd-2.0.0.mod/cmd/containerd-stress/main.go
+--- containerd-2.0.0/cmd/containerd-stress/main.go	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/cmd/containerd-stress/main.go	2024-11-09 12:39:28.450503551 +0800
+@@ -137,7 +137,7 @@
+ 		&cli.StringFlag{
+ 			Name:    "address",
+ 			Aliases: []string{"a"},
+-			Value:   "/run/containerd/containerd.sock",
++			Value:   "/data/local/tmp/docker/containerd/containerd.sock",
+ 			Usage:   "Path to the containerd socket",
+ 		},
+ 		&cli.IntFlag{
+diff --color -uNr containerd-2.0.0/cmd/containerd-stress/size.go containerd-2.0.0.mod/cmd/containerd-stress/size.go
+--- containerd-2.0.0/cmd/containerd-stress/size.go	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/cmd/containerd-stress/size.go	2024-11-09 12:39:28.450503551 +0800
+@@ -22,7 +22,7 @@
+ 	"github.com/containerd/log"
+ )
+ 
+-const defaultPath = "/usr/local/bin/"
++const defaultPath = "@TERMUX_PREFIX@/bin/"
+ 
+ var binaries = []string{
+ 	defaultPath + "ctr",
+diff --color -uNr containerd-2.0.0/contrib/fuzz/daemon.go containerd-2.0.0.mod/contrib/fuzz/daemon.go
+--- containerd-2.0.0/contrib/fuzz/daemon.go	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/contrib/fuzz/daemon.go	2024-11-09 12:39:28.446503551 +0800
+@@ -32,9 +32,9 @@
+ )
+ 
+ const (
+-	defaultRoot    = "/var/lib/containerd"
+-	defaultState   = "/tmp/containerd"
+-	defaultAddress = "/tmp/containerd/containerd.sock"
++	defaultRoot    = "/data/local/tmp/docker/lib/containerd"
++	defaultState   = "@TERMUX_PREFIX@/tmp/containerd"
++	defaultAddress = "@TERMUX_PREFIX@/tmp/containerd/containerd.sock"
+ )
+ 
+ var (
+diff --color -uNr containerd-2.0.0/contrib/gce/configure.sh containerd-2.0.0.mod/contrib/gce/configure.sh
+--- containerd-2.0.0/contrib/gce/configure.sh	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/contrib/gce/configure.sh	2024-11-09 12:41:42.070503500 +0800
+@@ -189,8 +189,8 @@
+ rm -f "${CONTAINERD_HOME}/etc/crictl.yaml"
+ 
+ # Generate containerd config
+-config_path="${CONTAINERD_CONFIG_PATH:-"/etc/containerd/config.toml"}"
+-registry_config_path="${CONTAINERD_REGISTRY_CONFIG_PATH:-"/etc/containerd/certs.d"}"
++config_path="${CONTAINERD_CONFIG_PATH:-"@TERMUX_PREFIX@/etc/containerd/config.toml"}"
++registry_config_path="${CONTAINERD_REGISTRY_CONFIG_PATH:-"@TERMUX_PREFIX@/etc/containerd/certs.d"}"
+ mkdir -p $(dirname ${config_path})
+ cni_bin_dir="${CONTAINERD_HOME}/opt/cni/bin"
+ cni_template_path="${CONTAINERD_HOME}/opt/containerd/cluster/gce/cni.template"
+diff --color -uNr containerd-2.0.0/defaults/defaults_unix.go containerd-2.0.0.mod/defaults/defaults_unix.go
+--- containerd-2.0.0/defaults/defaults_unix.go	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/defaults/defaults_unix.go	2024-11-09 12:39:28.446503551 +0800
+@@ -21,17 +21,17 @@
+ const (
+ 	// DefaultRootDir is the default location used by containerd to store
+ 	// persistent data
+-	DefaultRootDir = "/var/lib/containerd"
++	DefaultRootDir = "/data/local/tmp/docker/lib/containerd"
+ 	// DefaultStateDir is the default location used by containerd to store
+ 	// transient data
+-	DefaultStateDir = "/run/containerd"
++	DefaultStateDir = "/data/local/tmp/docker/containerd"
+ 	// DefaultAddress is the default unix socket address
+-	DefaultAddress = "/run/containerd/containerd.sock"
++	DefaultAddress = "/data/local/tmp/docker/containerd/containerd.sock"
+ 	// DefaultDebugAddress is the default unix socket address for pprof data
+-	DefaultDebugAddress = "/run/containerd/debug.sock"
++	DefaultDebugAddress = "/data/local/tmp/docker/containerd/debug.sock"
+ 	// DefaultFIFODir is the default location used by client-side cio library
+ 	// to store FIFOs.
+-	DefaultFIFODir = "/run/containerd/fifo"
++	DefaultFIFODir = "/data/local/tmp/docker/containerd/fifo"
+ 	// DefaultConfigDir is the default location for config files.
+-	DefaultConfigDir = "/etc/containerd"
++	DefaultConfigDir = "@TERMUX_PREFIX@/etc/containerd"
+ )
+diff --color -uNr containerd-2.0.0/integration/client/client_unix.go containerd-2.0.0.mod/integration/client/client_unix.go
+--- containerd-2.0.0/integration/client/client_unix.go	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/integration/client/client_unix.go	2024-11-09 12:39:28.446503551 +0800
+@@ -19,7 +19,7 @@
+ package client
+ 
+ const (
+-	defaultRoot    = "/var/lib/containerd-test"
+-	defaultState   = "/run/containerd-test"
+-	defaultAddress = "/run/containerd-test/containerd.sock"
++	defaultRoot    = "/data/local/tmp/docker/lib/containerd-test"
++	defaultState   = "/data/local/tmp/docker/containerd-test"
++	defaultAddress = "/data/local/tmp/docker/containerd-test/containerd.sock"
+ )
+diff --color -uNr containerd-2.0.0/internal/cri/config/config_unix.go containerd-2.0.0.mod/internal/cri/config/config_unix.go
+--- containerd-2.0.0/internal/cri/config/config_unix.go	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/internal/cri/config/config_unix.go	2024-11-09 12:39:28.446503551 +0800
+@@ -72,8 +72,8 @@
+ 
+ 	return RuntimeConfig{
+ 		CniConfig: CniConfig{
+-			NetworkPluginBinDir:        "/opt/cni/bin",
+-			NetworkPluginConfDir:       "/etc/cni/net.d",
++			NetworkPluginBinDir:        "@TERMUX_PREFIX@/opt/cni/bin",
++			NetworkPluginConfDir:       "@TERMUX_PREFIX@/etc/cni/net.d",
+ 			NetworkPluginMaxConfNum:    1, // only one CNI plugin config file will be loaded
+ 			NetworkPluginSetupSerially: false,
+ 			NetworkPluginConfTemplate:  "",
+@@ -97,7 +97,7 @@
+ 		DisableHugetlbController:         true,
+ 		IgnoreImageDefinedVolumes:        false,
+ 		EnableCDI:                        true,
+-		CDISpecDirs:                      []string{"/etc/cdi", "/var/run/cdi"},
++		CDISpecDirs:                      []string{"@TERMUX_PREFIX@/etc/cdi", "/data/local/tmp/docker/run/cdi"},
+ 		DrainExecSyncIOTimeout:           "0s",
+ 		EnableUnprivilegedPorts:          true,
+ 		EnableUnprivilegedICMP:           true,
+diff --color -uNr containerd-2.0.0/internal/cri/server/helpers.go containerd-2.0.0.mod/internal/cri/server/helpers.go
+--- containerd-2.0.0/internal/cri/server/helpers.go	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/internal/cri/server/helpers.go	2024-11-09 12:39:28.446503551 +0800
+@@ -70,11 +70,11 @@
+ 	// devShm is the default path of /dev/shm.
+ 	devShm = "/dev/shm"
+ 	// etcHosts is the default path of /etc/hosts file.
+-	etcHosts = "/etc/hosts"
++	etcHosts = "@TERMUX_PREFIX@/etc/hosts"
+ 	// etcHostname is the default path of /etc/hostname file.
+-	etcHostname = "/etc/hostname"
++	etcHostname = "@TERMUX_PREFIX@/etc/hostname"
+ 	// resolvConfPath is the abs path of resolv.conf on host or container.
+-	resolvConfPath = "/etc/resolv.conf"
++	resolvConfPath = "@TERMUX_PREFIX@/etc/resolv.conf"
+ )
+ 
+ // getSandboxRootDir returns the root directory for managing sandbox files,
+diff --color -uNr containerd-2.0.0/internal/cri/server/podsandbox/helpers_linux.go containerd-2.0.0.mod/internal/cri/server/podsandbox/helpers_linux.go
+--- containerd-2.0.0/internal/cri/server/podsandbox/helpers_linux.go	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/internal/cri/server/podsandbox/helpers_linux.go	2024-11-09 12:39:28.446503551 +0800
+@@ -53,9 +53,9 @@
+ 	// devShm is the default path of /dev/shm.
+ 	devShm = "/dev/shm"
+ 	// etcHosts is the default path of /etc/hosts file.
+-	etcHosts = "/etc/hosts"
++	etcHosts = "@TERMUX_PREFIX@/etc/hosts"
+ 	// resolvConfPath is the abs path of resolv.conf on host or container.
+-	resolvConfPath = "/etc/resolv.conf"
++	resolvConfPath = "@TERMUX_PREFIX@/etc/resolv.conf"
+ )
+ 
+ // getCgroupsPath generates container cgroups path.
+diff --color -uNr containerd-2.0.0/internal/cri/server/sandbox_run.go containerd-2.0.0.mod/internal/cri/server/sandbox_run.go
+--- containerd-2.0.0/internal/cri/server/sandbox_run.go	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/internal/cri/server/sandbox_run.go	2024-11-09 12:39:28.446503551 +0800
+@@ -174,7 +174,7 @@
+ 		// handle. NetNSPath in sandbox metadata and NetNS is non empty only for non host network
+ 		// namespaces. If the pod is in host network namespace then both are empty and should not
+ 		// be used.
+-		var netnsMountDir = "/var/run/netns"
++		var netnsMountDir = "/data/local/tmp/docker/run/netns"
+ 		if c.config.NetNSMountsUnderStateDir {
+ 			netnsMountDir = filepath.Join(c.config.StateDir, "netns")
+ 		}
+diff --color -uNr containerd-2.0.0/plugins/imageverifier/path_unix.go containerd-2.0.0.mod/plugins/imageverifier/path_unix.go
+--- containerd-2.0.0/plugins/imageverifier/path_unix.go	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/plugins/imageverifier/path_unix.go	2024-11-09 12:39:28.446503551 +0800
+@@ -18,4 +18,4 @@
+ 
+ package imageverifier
+ 
+-var defaultPath = "/opt/containerd/image-verifier/bin"
++var defaultPath = "@TERMUX_PREFIX@/opt/containerd/image-verifier/bin"
+diff --color -uNr containerd-2.0.0/plugins/services/opt/path_unix.go containerd-2.0.0.mod/plugins/services/opt/path_unix.go
+--- containerd-2.0.0/plugins/services/opt/path_unix.go	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/plugins/services/opt/path_unix.go	2024-11-09 12:39:28.446503551 +0800
+@@ -18,4 +18,4 @@
+ 
+ package opt
+ 
+-const defaultPath = "/opt/containerd"
++const defaultPath = "@TERMUX_PREFIX@/opt/containerd"
+diff --color -uNr containerd-2.0.0/script/setup/config-containerd containerd-2.0.0.mod/script/setup/config-containerd
+--- containerd-2.0.0/script/setup/config-containerd	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/script/setup/config-containerd	2024-11-09 12:43:29.150503459 +0800
+@@ -28,7 +28,7 @@
+ 
+ mkdir -p /etc/containerd
+ 
+-cat << EOF | sudo tee /etc/containerd/config.toml
++cat << EOF | sudo tee @TERMUX_PREFIX@/etc/containerd/config.toml
+ version = 2
+ 
+ [plugins."io.containerd.snapshotter.v1.overlayfs"]
+diff --color -uNr containerd-2.0.0/vendor/github.com/containerd/go-cni/types_others.go containerd-2.0.0.mod/vendor/github.com/containerd/go-cni/types_others.go
+--- containerd-2.0.0/vendor/github.com/containerd/go-cni/types_others.go	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/vendor/github.com/containerd/go-cni/types_others.go	2024-11-09 12:39:28.450503551 +0800
+@@ -19,7 +19,7 @@
+ package cni
+ 
+ const (
+-	DefaultNetDir        = "/etc/cni/net.d"
+-	DefaultCNIDir        = "/opt/cni/bin"
++	DefaultNetDir        = "@TERMUX_PREFIX@/etc/cni/net.d"
++	DefaultCNIDir        = "@TERMUX_PREFIX@/opt/cni/bin"
+ 	VendorCNIDirTemplate = "%s/opt/%s/bin"
+ )
+diff --color -uNr containerd-2.0.0/vendor/github.com/containerd/nri/client.go containerd-2.0.0.mod/vendor/github.com/containerd/nri/client.go
+--- containerd-2.0.0/vendor/github.com/containerd/nri/client.go	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/vendor/github.com/containerd/nri/client.go	2024-11-09 12:39:28.446503551 +0800
+@@ -32,9 +32,9 @@
+ 
+ const (
+ 	// DefaultBinaryPath for nri plugins
+-	DefaultBinaryPath = "/opt/nri/bin"
++	DefaultBinaryPath = "@TERMUX_PREFIX@/opt/nri/bin"
+ 	// DefaultConfPath for the global nri configuration
+-	DefaultConfPath = "/etc/nri/conf.json"
++	DefaultConfPath = "@TERMUX_PREFIX@/etc/nri/conf.json"
+ 	// Version of NRI
+ 	Version = "0.1"
+ )
+diff --color -uNr containerd-2.0.0/vendor/github.com/containerd/nri/pkg/adaptation/adaptation.go containerd-2.0.0.mod/vendor/github.com/containerd/nri/pkg/adaptation/adaptation.go
+--- containerd-2.0.0/vendor/github.com/containerd/nri/pkg/adaptation/adaptation.go	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/vendor/github.com/containerd/nri/pkg/adaptation/adaptation.go	2024-11-09 12:39:28.446503551 +0800
+@@ -34,11 +34,11 @@
+ 
+ const (
+ 	// DefaultPluginPath is the default path to search for NRI plugins.
+-	DefaultPluginPath = "/opt/nri/plugins"
++	DefaultPluginPath = "@TERMUX_PREFIX@/opt/nri/plugins"
+ 	// DefaultSocketPath is the default socket path for external plugins.
+ 	DefaultSocketPath = api.DefaultSocketPath
+ 	// PluginConfigDir is the drop-in directory for NRI-launched plugin configuration.
+-	DefaultPluginConfigPath = "/etc/nri/conf.d"
++	DefaultPluginConfigPath = "@TERMUX_PREFIX@/etc/nri/conf.d"
+ )
+ 
+ // SyncFn is a container runtime function for state synchronization.
+diff --color -uNr containerd-2.0.0/vendor/github.com/containerd/nri/pkg/api/plugin.go containerd-2.0.0.mod/vendor/github.com/containerd/nri/pkg/api/plugin.go
+--- containerd-2.0.0/vendor/github.com/containerd/nri/pkg/api/plugin.go	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/vendor/github.com/containerd/nri/pkg/api/plugin.go	2024-11-09 12:39:28.450503551 +0800
+@@ -23,7 +23,7 @@
+ 
+ const (
+ 	// DefaultSocketPath is the default socket path for external plugins.
+-	DefaultSocketPath = "/var/run/nri/nri.sock"
++	DefaultSocketPath = "/data/local/tmp/docker/run/nri/nri.sock"
+ 	// PluginSocketEnvVar is used to inform plugins about pre-connected sockets.
+ 	PluginSocketEnvVar = "NRI_PLUGIN_SOCKET"
+ 	// PluginNameEnvVar is used to inform NRI-launched plugins about their name.
+diff --color -uNr containerd-2.0.0/vendor/github.com/containernetworking/cni/libcni/api.go containerd-2.0.0.mod/vendor/github.com/containernetworking/cni/libcni/api.go
+--- containerd-2.0.0/vendor/github.com/containernetworking/cni/libcni/api.go	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/vendor/github.com/containernetworking/cni/libcni/api.go	2024-11-09 12:39:28.450503551 +0800
+@@ -38,7 +38,7 @@
+ )
+ 
+ var (
+-	CacheDir = "/var/lib/cni"
++	CacheDir = "/data/local/tmp/docker/lib/cni"
+ 	// slightly awkward wording to preserve anyone matching on error strings
+ 	ErrorCheckNotSupp = fmt.Errorf("does not support the CHECK command")
+ )
+diff --color -uNr containerd-2.0.0/vendor/github.com/vishvananda/netns/netns_linux.go containerd-2.0.0.mod/vendor/github.com/vishvananda/netns/netns_linux.go
+--- containerd-2.0.0/vendor/github.com/vishvananda/netns/netns_linux.go	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/vendor/github.com/vishvananda/netns/netns_linux.go	2024-11-09 12:39:28.446503551 +0800
+@@ -21,7 +21,7 @@
+ 	CLONE_IO      = unix.CLONE_IO      /* Get io context */
+ )
+ 
+-const bindMountPath = "/run/netns" /* Bind mount path for named netns */
++const bindMountPath = "/data/local/tmp/docker/netns" /* Bind mount path for named netns */
+ 
+ // Setns sets namespace using golang.org/x/sys/unix.Setns.
+ //
+@@ -165,7 +165,7 @@
+ // borrowed from docker/utils/utils.go
+ // modified to get the docker pid instead of using /proc/self
+ func getDockerCgroup(cgroupVer int, cgroupType string) (string, error) {
+-	dockerpid, err := os.ReadFile("/var/run/docker.pid")
++	dockerpid, err := os.ReadFile("/data/local/tmp/docker/run/docker.pid")
+ 	if err != nil {
+ 		return "", err
+ 	}
+diff --color -uNr containerd-2.0.0/vendor/go.opentelemetry.io/otel/sdk/resource/host_id.go containerd-2.0.0.mod/vendor/go.opentelemetry.io/otel/sdk/resource/host_id.go
+--- containerd-2.0.0/vendor/go.opentelemetry.io/otel/sdk/resource/host_id.go	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/vendor/go.opentelemetry.io/otel/sdk/resource/host_id.go	2024-11-09 12:39:28.450503551 +0800
+@@ -35,7 +35,7 @@
+ // execute `kenv -q smbios.system.uuid`. If neither location yields an id an
+ // error will be returned.
+ func (r *hostIDReaderBSD) read() (string, error) {
+-	if result, err := r.readFile("/etc/hostid"); err == nil {
++	if result, err := r.readFile("@TERMUX_PREFIX@/etc/hostid"); err == nil {
+ 		return strings.TrimSpace(result), nil
+ 	}
+ 
+@@ -82,11 +82,11 @@
+ // /var/lib/dbus/machine-id. If neither location yields an ID an error will
+ // be returned.
+ func (r *hostIDReaderLinux) read() (string, error) {
+-	if result, err := r.readFile("/etc/machine-id"); err == nil {
++	if result, err := r.readFile("@TERMUX_PREFIX@/etc/machine-id"); err == nil {
+ 		return strings.TrimSpace(result), nil
+ 	}
+ 
+-	if result, err := r.readFile("/var/lib/dbus/machine-id"); err == nil {
++	if result, err := r.readFile("@TERMUX_PREFIX@/var/lib/dbus/machine-id"); err == nil {
+ 		return strings.TrimSpace(result), nil
+ 	}
+ 
+diff --color -uNr containerd-2.0.0/vendor/go.opentelemetry.io/otel/sdk/resource/os_release_unix.go containerd-2.0.0.mod/vendor/go.opentelemetry.io/otel/sdk/resource/os_release_unix.go
+--- containerd-2.0.0/vendor/go.opentelemetry.io/otel/sdk/resource/os_release_unix.go	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/vendor/go.opentelemetry.io/otel/sdk/resource/os_release_unix.go	2024-11-09 12:45:52.698503404 +0800
+@@ -36,7 +36,7 @@
+ // files, according to their order of preference. If no file can be opened, it
+ // returns an error.
+ func getOSReleaseFile() (*os.File, error) {
+-	return getFirstAvailableFile([]string{"/etc/os-release", "/usr/lib/os-release"})
++	return getFirstAvailableFile([]string{"@TERMUX_PREFIX@/etc/os-release", "@TERMUX_PREFIX@/lib/os-release"})
+ }
+ 
+ // parseOSReleaseFile process the file pointed by `file` as an os-release file and
+diff --color -uNr containerd-2.0.0/vendor/tags.cncf.io/container-device-interface/pkg/cdi/spec-dirs.go containerd-2.0.0.mod/vendor/tags.cncf.io/container-device-interface/pkg/cdi/spec-dirs.go
+--- containerd-2.0.0/vendor/tags.cncf.io/container-device-interface/pkg/cdi/spec-dirs.go	2024-11-06 02:34:06.000000000 +0800
++++ containerd-2.0.0.mod/vendor/tags.cncf.io/container-device-interface/pkg/cdi/spec-dirs.go	2024-11-09 12:39:28.450503551 +0800
+@@ -25,9 +25,9 @@
+ 
+ const (
+ 	// DefaultStaticDir is the default directory for static CDI Specs.
+-	DefaultStaticDir = "/etc/cdi"
++	DefaultStaticDir = "@TERMUX_PREFIX@/etc/cdi"
+ 	// DefaultDynamicDir is the default directory for generated CDI Specs
+-	DefaultDynamicDir = "/var/run/cdi"
++	DefaultDynamicDir = "/data/local/tmp/docker/run/cdi"
+ )
+ 
+ var (

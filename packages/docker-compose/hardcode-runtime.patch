@@ -1,0 +1,138 @@
+diff --color -uNr compose-2.30.3/compose/pkg/compose/build_classic.go compose-2.30.3.mod/compose/pkg/compose/build_classic.go
+--- compose-2.30.3/compose/pkg/compose/build_classic.go	2024-11-07 21:19:53.000000000 +0800
++++ compose-2.30.3.mod/compose/pkg/compose/build_classic.go	2024-11-09 13:29:07.322502414 +0800
+@@ -24,7 +24,7 @@
+ 	"io"
+ 	"os"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ 
+ 	"github.com/docker/cli/cli/command"
+@@ -203,8 +203,8 @@
+ 
+ 	// Windows: show error message about modified file permissions if the
+ 	// daemon isn't running Windows.
+-	if response.OSType != "windows" && runtime.GOOS == "windows" {
+-		// if response.OSType != "windows" && runtime.GOOS == "windows" && !options.quiet {
++	if response.OSType != "windows" && "linux" == "windows" {
++		// if response.OSType != "windows" && "linux" == "windows" && !options.quiet {
+ 		_, _ = fmt.Fprintln(s.stdout(), "SECURITY WARNING: You are building a Docker "+
+ 			"image from Windows against a non-Windows Docker host. All files and "+
+ 			"directories added to build context will have '-rwxr-xr-x' permissions. "+
+diff --color -uNr compose-2.30.3/compose/pkg/compose/envresolver.go compose-2.30.3.mod/compose/pkg/compose/envresolver.go
+--- compose-2.30.3/compose/pkg/compose/envresolver.go	2024-11-07 21:19:53.000000000 +0800
++++ compose-2.30.3.mod/compose/pkg/compose/envresolver.go	2024-11-09 13:29:07.322502414 +0800
+@@ -17,13 +17,13 @@
+ package compose
+ 
+ import (
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ )
+ 
+ var (
+ 	// isCaseInsensitiveEnvVars is true on platforms where environment variable names are treated case-insensitively.
+-	isCaseInsensitiveEnvVars = (runtime.GOOS == "windows")
++	isCaseInsensitiveEnvVars = ("linux" == "windows")
+ )
+ 
+ // envResolver returns resolver for environment variables suitable for the current platform.
+diff --color -uNr compose-2.30.3/compose/pkg/e2e/framework.go compose-2.30.3.mod/compose/pkg/e2e/framework.go
+--- compose-2.30.3/compose/pkg/e2e/framework.go	2024-11-07 21:19:53.000000000 +0800
++++ compose-2.30.3.mod/compose/pkg/e2e/framework.go	2024-11-09 13:29:07.322502414 +0800
+@@ -57,7 +57,7 @@
+ )
+ 
+ func init() {
+-	if runtime.GOOS == "windows" {
++	if "linux" == "windows" {
+ 		DockerExecutableName += WindowsExecutableSuffix
+ 		DockerComposeExecutableName += WindowsExecutableSuffix
+ 		DockerScanExecutableName += WindowsExecutableSuffix
+diff --color -uNr compose-2.30.3/compose/pkg/progress/spinner.go compose-2.30.3.mod/compose/pkg/progress/spinner.go
+--- compose-2.30.3/compose/pkg/progress/spinner.go	2024-11-07 21:19:53.000000000 +0800
++++ compose-2.30.3.mod/compose/pkg/progress/spinner.go	2024-11-09 13:29:07.322502414 +0800
+@@ -17,7 +17,7 @@
+ package progress
+ 
+ import (
+-	"runtime"
++	_ "runtime"
+ 	"time"
+ )
+ 
+@@ -35,7 +35,7 @@
+ 	}
+ 	done := "⠿"
+ 
+-	if runtime.GOOS == "windows" {
++	if "linux" == "windows" {
+ 		chars = []string{"-"}
+ 		done = "-"
+ 	}
+diff --color -uNr compose-2.30.3/compose/pkg/watch/notify.go compose-2.30.3.mod/compose/pkg/watch/notify.go
+--- compose-2.30.3/compose/pkg/watch/notify.go	2024-11-07 21:19:53.000000000 +0800
++++ compose-2.30.3.mod/compose/pkg/watch/notify.go	2024-11-09 13:29:07.318502414 +0800
+@@ -22,7 +22,7 @@
+ 	"fmt"
+ 	"os"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 	"strconv"
+ 
+ 	"github.com/tilt-dev/fsnotify"
+@@ -104,7 +104,7 @@
+ }
+ 
+ func IsWindowsShortReadError(err error) bool {
+-	return runtime.GOOS == "windows" && !errors.Is(err, fsnotify.ErrEventOverflow)
++	return "linux" == "windows" && !errors.Is(err, fsnotify.ErrEventOverflow)
+ }
+ 
+ type CompositePathMatcher struct {
+diff --color -uNr compose-2.30.3/compose/pkg/watch/temp_dir_fixture.go compose-2.30.3.mod/compose/pkg/watch/temp_dir_fixture.go
+--- compose-2.30.3/compose/pkg/watch/temp_dir_fixture.go	2024-11-07 21:19:53.000000000 +0800
++++ compose-2.30.3.mod/compose/pkg/watch/temp_dir_fixture.go	2024-11-09 13:29:07.322502414 +0800
+@@ -20,7 +20,7 @@
+ 	"os"
+ 	"path/filepath"
+ 	"regexp"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ 	"testing"
+ )
+@@ -188,7 +188,7 @@
+ 	}
+ 
+ 	err := f.dir.TearDown()
+-	if err != nil && runtime.GOOS == "windows" &&
++	if err != nil && "linux" == "windows" &&
+ 		(strings.Contains(err.Error(), "The process cannot access the file") ||
+ 			strings.Contains(err.Error(), "Access is denied")) {
+ 		// NOTE(nick): I'm not convinced that this is a real problem.
+diff --color -uNr compose-2.30.3/compose/pkg/watch/watcher_naive.go compose-2.30.3.mod/compose/pkg/watch/watcher_naive.go
+--- compose-2.30.3/compose/pkg/watch/watcher_naive.go	2024-11-07 21:19:53.000000000 +0800
++++ compose-2.30.3.mod/compose/pkg/watch/watcher_naive.go	2024-11-09 13:29:07.322502414 +0800
+@@ -24,7 +24,7 @@
+ 	"io/fs"
+ 	"os"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ 
+ 	pathutil "github.com/docker/compose/v2/internal/paths"
+@@ -305,7 +305,7 @@
+ 
+ 	fsw, err := fsnotify.NewWatcher()
+ 	if err != nil {
+-		if strings.Contains(err.Error(), "too many open files") && runtime.GOOS == "linux" {
++		if strings.Contains(err.Error(), "too many open files") && "linux" == "linux" {
+ 			return nil, fmt.Errorf("Hit OS limits creating a watcher.\n" +
+ 				"Run 'sysctl fs.inotify.max_user_instances' to check your inotify limits.\n" +
+ 				"To raise them, run 'sudo sysctl fs.inotify.max_user_instances=1024'")

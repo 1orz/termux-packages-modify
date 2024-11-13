@@ -1,0 +1,115 @@
+diff --color -uNr dqlite-1.18.0/src/roles.c dqlite-1.18.0.mod/src/roles.c
+--- dqlite-1.18.0/src/roles.c	2024-10-23 11:25:04.000000000 +0800
++++ dqlite-1.18.0.mod/src/roles.c	2024-10-24 21:53:26.857370957 +0800
+@@ -246,6 +246,66 @@
+ 	queue_insert_tail(&d->roles_changes, &rec->queue);
+ }
+ 
++/**
++ * Swap two elements in an array.
++ */
++static void swap(void *a, void *b, size_t size) {
++    unsigned char *p = a, *q = b, tmp;
++    for (size_t i = 0; i < size; i++) {
++        tmp = p[i];
++        p[i] = q[i];
++        q[i] = tmp;
++    }
++}
++
++/**
++ * Partition function used by the quicksort algorithm.
++ */
++static int partition(void *base, size_t size, int (*compar)(void *, const void *, const void *), void *arg, int low, int high) {
++    unsigned char *array = base;
++    void *pivot = array + (size_t)high * size;
++    int i = low - 1;
++
++    for (int j = low; j < high; j++) {
++        if (compar(arg, array + (size_t)j * size, pivot) < 0) {
++            i++;
++            swap(array + (size_t)i * size, array + (size_t)j * size, size);
++        }
++    }
++    swap(array + (size_t)(i + 1) * size, array + (size_t)high * size, size);
++    return i + 1;
++}
++
++/**
++ * Quicksort function used recursively.
++ */
++static void quicksort(void *base, size_t size, int (*compar)(void *, const void *, const void *), void *arg, int low, int high) {
++    if (low < high) {
++        int pi = partition(base, size, compar, arg, low, high);
++        quicksort(base, size, compar, arg, low, pi - 1);
++        quicksort(base, size, compar, arg, pi + 1, high);
++    }
++}
++
++/**
++ * Custom implementation of qsort_r for platforms where it is not available.
++ */
++void qsort_r(void *base, size_t nmemb, size_t size, int (*compar)(void *, const void *, const void *), void *arg) {
++    if (nmemb < 2 || size == 0) {
++        return; // Nothing to sort
++    }
++    quicksort(base, size, compar, arg, 0, (int)(nmemb - 1));
++}
++
++static int compareNodesForPromotionWrapper(void *arg, const void *a, const void *b) {
++    return compareNodesForPromotion(a, b, arg);
++}
++
++static int compareNodesForDemotionWrapper(void *arg, const void *a, const void *b) {
++    return compareNodesForDemotion(a, b, arg);
++}
++
++
+ void RolesComputeChanges(int voters,
+ 			 int standbys,
+ 			 struct all_node_info *cluster,
+@@ -280,7 +340,7 @@
+ 	/* If we don't have enough voters, promote some standbys and spares. */
+ 	if (voter_count < voters) {
+ 		qsort_r(cluster, n_cluster, sizeof *cluster,
+-			compareNodesForPromotion, &voter_compare);
++			compareNodesForPromotionWrapper, &voter_compare);
+ 	}
+ 	for (i = 0; i < n_cluster && voter_count < voters; i += 1) {
+ 		if (!cluster[i].online || cluster[i].role == DQLITE_VOTER) {
+@@ -304,7 +364,7 @@
+ 	 * consolidated by queueChangeCb. */
+ 	if (voter_count > voters) {
+ 		qsort_r(cluster, n_cluster, sizeof *cluster,
+-			compareNodesForDemotion, &voter_compare);
++			compareNodesForDemotionWrapper, &voter_compare);
+ 	}
+ 	for (i = 0; i < n_cluster && voter_count > voters; i += 1) {
+ 		if (cluster[i].role != DQLITE_VOTER || cluster[i].id == my_id) {
+@@ -319,7 +379,7 @@
+ 	/* If we don't have enough standbys, promote some spares. */
+ 	if (standby_count < standbys) {
+ 		qsort_r(cluster, n_cluster, sizeof *cluster,
+-			compareNodesForPromotion, &standby_compare);
++			compareNodesForPromotionWrapper, &standby_compare);
+ 	}
+ 	for (i = 0; i < n_cluster && standby_count < standbys; i += 1) {
+ 		if (!cluster[i].online || cluster[i].role != DQLITE_SPARE) {
+@@ -334,7 +394,7 @@
+ 	/* If we have too many standbys, demote some of them. */
+ 	if (standby_count > standbys) {
+ 		qsort_r(cluster, n_cluster, sizeof *cluster,
+-			compareNodesForDemotion, &standby_compare);
++			compareNodesForDemotionWrapper, &standby_compare);
+ 	}
+ 	for (i = 0; i < n_cluster && standby_count > standbys; i += 1) {
+ 		if (cluster[i].role != DQLITE_STANDBY) {
+@@ -604,7 +664,7 @@
+ 			addDomain(cluster[i].failure_domain, &voter_compare);
+ 		}
+ 	}
+-	qsort_r(cluster, n_cluster, sizeof *cluster, compareNodesForPromotion,
++	qsort_r(cluster, n_cluster, sizeof *cluster, compareNodesForPromotionWrapper,
+ 		&voter_compare);
+ 	target_id = 0;
+ 	for (i = 0; i < n_cluster; i += 1) {

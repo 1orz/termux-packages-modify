@@ -1,0 +1,23 @@
+diff --color -uNr eudev-3.2.14/src/shared/path-util.c eudev-3.2.14.mod/src/shared/path-util.c
+--- eudev-3.2.14/src/shared/path-util.c	2023-10-04 01:22:44.000000000 +0800
++++ eudev-3.2.14.mod/src/shared/path-util.c	2024-10-24 22:39:12.521369909 +0800
+@@ -18,7 +18,9 @@
+ ***/
+ 
+ #include <assert.h>
++#include <linux/limits.h>
+ #include <string.h>
++#include <time.h>
+ #include <unistd.h>
+ #include <errno.h>
+ #include <stdlib.h>
+@@ -109,7 +111,8 @@
+         if (path_is_absolute(p))
+                 return strdup(p);
+ 
+-        cwd = get_current_dir_name();
++        char cwd_def[PATH_MAX];
++        cwd = getcwd(cwd_def, sizeof(cwd_def) != NULL);
+         if (!cwd)
+                 return NULL;
+ 

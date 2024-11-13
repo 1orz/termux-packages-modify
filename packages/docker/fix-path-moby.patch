@@ -1,0 +1,618 @@
+diff --color -uNr moby-27.3.1/moby/cmd/dockerd/daemon_unix.go moby-27.3.1.mod/moby/cmd/dockerd/daemon_unix.go
+--- moby-27.3.1/moby/cmd/dockerd/daemon_unix.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/cmd/dockerd/daemon_unix.go	2024-10-30 23:57:45.703077864 +0800
+@@ -23,7 +23,7 @@
+ 
+ func getDefaultDaemonConfigDir() (string, error) {
+ 	if !honorXDG {
+-		return "/etc/docker", nil
++		return "@TERMUX_PREFIX@/etc/docker", nil
+ 	}
+ 	// NOTE: CLI uses ~/.docker while the daemon uses ~/.config/docker, because
+ 	// ~/.docker was not designed to store daemon configurations.
+diff --color -uNr moby-27.3.1/moby/contrib/syscall-test/acct.c moby-27.3.1.mod/moby/contrib/syscall-test/acct.c
+--- moby-27.3.1/moby/contrib/syscall-test/acct.c	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/contrib/syscall-test/acct.c	2024-10-30 23:57:45.703077864 +0800
+@@ -7,7 +7,7 @@
+ 
+ int main(int argc, char **argv)
+ {
+-	int err = acct("/tmp/t");
++	int err = acct("@TERMUX_PREFIX@/tmp/t");
+ 	if (err == -1) {
+ 		fprintf(stderr, "acct failed: %s\n", strerror(errno));
+ 		exit(EXIT_FAILURE);
+diff --color -uNr moby-27.3.1/moby/daemon/config/config_linux.go moby-27.3.1.mod/moby/daemon/config/config_linux.go
+--- moby-27.3.1/moby/daemon/config/config_linux.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/daemon/config/config_linux.go	2024-10-31 00:03:37.971077729 +0800
+@@ -117,20 +117,20 @@
+ 	lookupPaths := []string{
+ 		// FHS 3.0: "/usr/libexec includes internal binaries that are not intended to be executed directly by users or shell scripts. Applications may use a single subdirectory under /usr/libexec."
+ 		// https://refspecs.linuxfoundation.org/FHS_3.0/fhs/ch04s07.html
+-		"/usr/local/libexec/docker",
+-		"/usr/libexec/docker",
++		"@TERMUX_PREFIX@/libexec/docker",
++		"@TERMUX_PREFIX@/libexec/docker",
+ 
+ 		// FHS 2.3: "/usr/lib includes object files, libraries, and internal binaries that are not intended to be executed directly by users or shell scripts."
+ 		// https://refspecs.linuxfoundation.org/FHS_2.3/fhs-2.3.html#USRLIBLIBRARIESFORPROGRAMMINGANDPA
+-		"/usr/local/lib/docker",
+-		"/usr/lib/docker",
++		"@TERMUX_PREFIX@/lib/docker",
++		"@TERMUX_PREFIX@/lib/docker",
+ 	}
+ 
+ 	// According to FHS 3.0, it is not necessary to have a subdir here (see note and reference above).
+ 	// If the binary has a `docker-` prefix, let's look it up without the dir prefix.
+ 	if strings.HasPrefix(binary, "docker-") {
+-		lookupPaths = append(lookupPaths, "/usr/local/libexec")
+-		lookupPaths = append(lookupPaths, "/usr/libexec")
++		lookupPaths = append(lookupPaths, "@TERMUX_PREFIX@/libexec")
++		lookupPaths = append(lookupPaths, "@TERMUX_PREFIX@/libexec")
+ 	}
+ 
+ 	for _, dir := range lookupPaths {
+@@ -272,9 +272,9 @@
+ 			// that case..
+ 			log.G(context.TODO()).WithError(err).Debug("failed to lookup default userland-proxy binary")
+ 		}
+-		cfg.Root = "/var/lib/docker"
+-		cfg.ExecRoot = "/var/run/docker"
+-		cfg.Pidfile = "/var/run/docker.pid"
++		cfg.Root = "/data/local/tmp/docker/lib/docker"
++		cfg.ExecRoot = "/data/local/tmp/docker/run/docker"
++		cfg.Pidfile = "/data/local/tmp/docker/run/docker.pid"
+ 	}
+ 
+ 	return nil
+diff --color -uNr moby-27.3.1/moby/daemon/container_operations_unix.go moby-27.3.1.mod/moby/daemon/container_operations_unix.go
+--- moby-27.3.1/moby/daemon/container_operations_unix.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/daemon/container_operations_unix.go	2024-10-30 23:57:45.703077864 +0800
+@@ -432,9 +432,9 @@
+ 		// as on the host itself. The container gets a copy of these files.
+ 		*sboxOptions = append(
+ 			*sboxOptions,
+-			libnetwork.OptionOriginHostsPath("/etc/hosts"),
++			libnetwork.OptionOriginHostsPath("@TERMUX_PREFIX@/etc/hosts"),
+ 		)
+-		originResolvConfPath = "/etc/resolv.conf"
++		originResolvConfPath = "@TERMUX_PREFIX@/etc/resolv.conf"
+ 	case ctr.HostConfig.NetworkMode.IsUserDefined():
+ 		// The container uses a user-defined network. We use the embedded DNS
+ 		// server for container name resolution and to act as a DNS forwarder
+@@ -447,7 +447,7 @@
+ 		// If systemd-resolvd is used, the "upstream" DNS servers can be found in
+ 		// /run/systemd/resolve/resolv.conf. We do not query those DNS servers
+ 		// directly, as they can be dynamically reconfigured.
+-		originResolvConfPath = "/etc/resolv.conf"
++		originResolvConfPath = "@TERMUX_PREFIX@/etc/resolv.conf"
+ 	default:
+ 		// For other situations, such as the default bridge network, container
+ 		// discovery / name resolution is handled through /etc/hosts, and no
+diff --color -uNr moby-27.3.1/moby/daemon/daemon_linux.go moby-27.3.1.mod/moby/daemon/daemon_linux.go
+--- moby-27.3.1/moby/daemon/daemon_linux.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/daemon/daemon_linux.go	2024-10-30 23:57:45.703077864 +0800
+@@ -27,7 +27,7 @@
+ // plugin socket files are created here and they cannot exceed max
+ // path length of 108 bytes.
+ func getPluginExecRoot(_ *config.Config) string {
+-	return "/run/docker/plugins"
++	return "/data/local/tmp/docker/run/docker/plugins"
+ }
+ 
+ func (daemon *Daemon) cleanupMountsByID(id string) error {
+diff --color -uNr moby-27.3.1/moby/daemon/daemon_unix.go moby-27.3.1.mod/moby/daemon/daemon_unix.go
+--- moby-27.3.1/moby/daemon/daemon_unix.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/daemon/daemon_unix.go	2024-10-30 23:57:45.703077864 +0800
+@@ -632,7 +632,7 @@
+ // It was borrowed here to avoid a dependency on cgo.
+ func isRunningSystemd() bool {
+ 	detectSystemd.Do(func() {
+-		fi, err := os.Lstat("/run/systemd/system")
++		fi, err := os.Lstat("@TERMUX_PREFIX@/var/run/systemd/system")
+ 		if err != nil {
+ 			return
+ 		}
+diff --color -uNr moby-27.3.1/moby/daemon/initlayer/setup_unix.go moby-27.3.1.mod/moby/daemon/initlayer/setup_unix.go
+--- moby-27.3.1/moby/daemon/initlayer/setup_unix.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/daemon/initlayer/setup_unix.go	2024-10-30 23:57:45.703077864 +0800
+@@ -26,11 +26,11 @@
+ 		"/proc":            "dir",
+ 		"/sys":             "dir",
+ 		"/.dockerenv":      "file",
+-		"/etc/resolv.conf": "file",
+-		"/etc/hosts":       "file",
+-		"/etc/hostname":    "file",
++		"@TERMUX_PREFIX@/etc/resolv.conf": "file",
++		"@TERMUX_PREFIX@/etc/hosts":       "file",
++		"@TERMUX_PREFIX@/etc/hostname":    "file",
+ 		"/dev/console":     "file",
+-		"/etc/mtab":        "/proc/mounts",
++		"@TERMUX_PREFIX@/etc/mtab":        "/proc/mounts",
+ 	} {
+ 		parts := strings.Split(pth, "/")
+ 		prev := "/"
+diff --color -uNr moby-27.3.1/moby/daemon/metrics_unix.go moby-27.3.1.mod/moby/daemon/metrics_unix.go
+--- moby-27.3.1/moby/daemon/metrics_unix.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/daemon/metrics_unix.go	2024-10-30 23:57:45.703077864 +0800
+@@ -48,7 +48,7 @@
+ func registerMetricsPluginCallback(store *plugin.Store, sockPath string) {
+ 	store.RegisterRuntimeOpt(metricsPluginType, func(s *specs.Spec) {
+ 		f := plugin.WithSpecMounts([]specs.Mount{
+-			{Type: "bind", Source: sockPath, Destination: "/run/docker/metrics.sock", Options: []string{"bind", "ro"}},
++			{Type: "bind", Source: sockPath, Destination: "/data/local/tmp/docker/run/docker/metrics.sock", Options: []string{"bind", "ro"}},
+ 		})
+ 		f(s)
+ 	})
+diff --color -uNr moby-27.3.1/moby/daemon/oci_linux.go moby-27.3.1.mod/moby/daemon/oci_linux.go
+--- moby-27.3.1/moby/daemon/oci_linux.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/daemon/oci_linux.go	2024-10-30 23:57:45.703077864 +0800
+@@ -36,7 +36,7 @@
+ 	"go.opentelemetry.io/otel"
+ )
+ 
+-const inContainerInitPath = "/sbin/" + dconfig.DefaultInitBinary
++const inContainerInitPath = "@TERMUX_PREFIX@/sbin/" + dconfig.DefaultInitBinary
+ 
+ // withRlimits sets the container's rlimits along with merging the daemon's rlimits
+ func withRlimits(daemon *Daemon, daemonCfg *dconfig.Config, c *container.Container) coci.SpecOpts {
+diff --color -uNr moby-27.3.1/moby/integration/plugin/logging/cmd/close_on_start/main.go moby-27.3.1.mod/moby/integration/plugin/logging/cmd/close_on_start/main.go
+--- moby-27.3.1/moby/integration/plugin/logging/cmd/close_on_start/main.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/integration/plugin/logging/cmd/close_on_start/main.go	2024-10-30 23:57:45.699077864 +0800
+@@ -14,7 +14,7 @@
+ }
+ 
+ func main() {
+-	l, err := net.Listen("unix", "/run/docker/plugins/plugin.sock")
++	l, err := net.Listen("unix", "/data/local/tmp/docker/run/docker/plugins/plugin.sock")
+ 	if err != nil {
+ 		panic(err)
+ 	}
+diff --color -uNr moby-27.3.1/moby/integration/plugin/logging/cmd/discard/main.go moby-27.3.1.mod/moby/integration/plugin/logging/cmd/discard/main.go
+--- moby-27.3.1/moby/integration/plugin/logging/cmd/discard/main.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/integration/plugin/logging/cmd/discard/main.go	2024-10-30 23:57:45.695077864 +0800
+@@ -7,7 +7,7 @@
+ )
+ 
+ func main() {
+-	l, err := net.Listen("unix", "/run/docker/plugins/plugin.sock")
++	l, err := net.Listen("unix", "/data/local/tmp/docker/run/docker/plugins/plugin.sock")
+ 	if err != nil {
+ 		panic(err)
+ 	}
+diff --color -uNr moby-27.3.1/moby/integration/plugin/logging/cmd/dummy/main.go moby-27.3.1.mod/moby/integration/plugin/logging/cmd/dummy/main.go
+--- moby-27.3.1/moby/integration/plugin/logging/cmd/dummy/main.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/integration/plugin/logging/cmd/dummy/main.go	2024-10-30 23:57:45.699077864 +0800
+@@ -7,7 +7,7 @@
+ )
+ 
+ func main() {
+-	l, err := net.Listen("unix", "/run/docker/plugins/plugin.sock")
++	l, err := net.Listen("unix", "/data/local/tmp/docker/run/docker/plugins/plugin.sock")
+ 	if err != nil {
+ 		panic(err)
+ 	}
+diff --color -uNr moby-27.3.1/moby/integration/plugin/volumes/cmd/dummy/main.go moby-27.3.1.mod/moby/integration/plugin/volumes/cmd/dummy/main.go
+--- moby-27.3.1/moby/integration/plugin/volumes/cmd/dummy/main.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/integration/plugin/volumes/cmd/dummy/main.go	2024-10-30 23:57:45.695077864 +0800
+@@ -7,7 +7,7 @@
+ )
+ 
+ func main() {
+-	l, err := net.Listen("unix", "/run/docker/plugins/plugin.sock")
++	l, err := net.Listen("unix", "/data/local/tmp/docker/run/docker/plugins/plugin.sock")
+ 	if err != nil {
+ 		panic(err)
+ 	}
+diff --color -uNr moby-27.3.1/moby/libnetwork/datastore/datastore.go moby-27.3.1.mod/moby/libnetwork/datastore/datastore.go
+--- moby-27.3.1/moby/libnetwork/datastore/datastore.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/libnetwork/datastore/datastore.go	2024-10-30 23:57:45.703077864 +0800
+@@ -74,7 +74,7 @@
+ 	rootChain        = defaultRootChain
+ )
+ 
+-const defaultPrefix = "/var/lib/docker/network/files"
++const defaultPrefix = "/data/local/tmp/docker/lib/docker/network/files"
+ 
+ // DefaultScope returns a default scope config for clients to use.
+ func DefaultScope(dataDir string) ScopeCfg {
+diff --color -uNr moby-27.3.1/moby/libnetwork/diagnostic/server.go moby-27.3.1.mod/moby/libnetwork/diagnostic/server.go
+--- moby-27.3.1/moby/libnetwork/diagnostic/server.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/libnetwork/diagnostic/server.go	2024-10-30 23:57:45.699077864 +0800
+@@ -177,7 +177,7 @@
+ 	logger := log.G(context.TODO()).WithFields(log.Fields{"component": "diagnostic", "remoteIP": r.RemoteAddr, "method": caller.Name(0), "url": r.URL.String()})
+ 	logger.Info("stack trace")
+ 
+-	path, err := stack.DumpToFile("/tmp/")
++	path, err := stack.DumpToFile("@TERMUX_PREFIX@/tmp/")
+ 	if err != nil {
+ 		logger.WithError(err).Error("failed to write goroutines dump")
+ 		_, _ = HTTPReply(w, FailCommand(err), jsonOutput)
+diff --color -uNr moby-27.3.1/moby/libnetwork/internal/resolvconf/resolvconf_path.go moby-27.3.1.mod/moby/libnetwork/internal/resolvconf/resolvconf_path.go
+--- moby-27.3.1/moby/libnetwork/internal/resolvconf/resolvconf_path.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/libnetwork/internal/resolvconf/resolvconf_path.go	2024-10-30 23:57:45.699077864 +0800
+@@ -10,9 +10,9 @@
+ 
+ const (
+ 	// defaultPath is the default path to the resolv.conf that contains information to resolve DNS. See Path().
+-	defaultPath = "/etc/resolv.conf"
++	defaultPath = "@TERMUX_PREFIX@/etc/resolv.conf"
+ 	// alternatePath is a path different from defaultPath, that may be used to resolve DNS. See Path().
+-	alternatePath = "/run/systemd/resolve/resolv.conf"
++	alternatePath = "@TERMUX_PREFIX@/var/run/systemd/resolve/resolv.conf"
+ )
+ 
+ // For Path to detect systemd (only needed for legacy networking).
+diff --color -uNr moby-27.3.1/moby/libnetwork/osl/namespace_linux.go moby-27.3.1.mod/moby/libnetwork/osl/namespace_linux.go
+--- moby-27.3.1/moby/libnetwork/osl/namespace_linux.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/libnetwork/osl/namespace_linux.go	2024-10-30 23:57:45.699077864 +0800
+@@ -25,7 +25,7 @@
+ 	"golang.org/x/sys/unix"
+ )
+ 
+-const defaultPrefix = "/var/run/docker"
++const defaultPrefix = "/data/local/tmp/docker/run/docker"
+ 
+ func init() {
+ 	// Lock main() to the initial thread to exclude the goroutines spawned
+diff --color -uNr moby-27.3.1/moby/libnetwork/sandbox_dns_unix.go moby-27.3.1.mod/moby/libnetwork/sandbox_dns_unix.go
+--- moby-27.3.1/moby/libnetwork/sandbox_dns_unix.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/libnetwork/sandbox_dns_unix.go	2024-10-30 23:57:45.699077864 +0800
+@@ -21,7 +21,7 @@
+ )
+ 
+ const (
+-	defaultPrefix = "/var/lib/docker/network/files"
++	defaultPrefix = "/data/local/tmp/docker/lib/docker/network/files"
+ 	dirPerm       = 0o755
+ 	filePerm      = 0o644
+ 
+diff --color -uNr moby-27.3.1/moby/libnetwork/sandbox_externalkey_unix.go moby-27.3.1.mod/moby/libnetwork/sandbox_externalkey_unix.go
+--- moby-27.3.1/moby/libnetwork/sandbox_externalkey_unix.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/libnetwork/sandbox_externalkey_unix.go	2024-10-30 23:57:45.699077864 +0800
+@@ -25,7 +25,7 @@
+ 
+ const (
+ 	execSubdir      = "libnetwork"
+-	defaultExecRoot = "/run/docker"
++	defaultExecRoot = "/data/local/tmp/docker/run/docker"
+ 	success         = "success"
+ )
+ 
+diff --color -uNr moby-27.3.1/moby/opts/hosts.go moby-27.3.1.mod/moby/opts/hosts.go
+--- moby-27.3.1/moby/opts/hosts.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/opts/hosts.go	2024-10-30 23:57:45.687077864 +0800
+@@ -20,7 +20,7 @@
+ 	DefaultTLSHTTPPort = 2376 // Default TLS encrypted HTTP Port
+ 	// DefaultUnixSocket Path for the unix socket.
+ 	// Docker daemon by default always listens on the default unix socket
+-	DefaultUnixSocket = "/var/run/docker.sock"
++	DefaultUnixSocket = "/data/local/tmp/docker/run/docker.sock"
+ 	// DefaultTCPHost constant defines the default host string used by docker on Windows
+ 	DefaultTCPHost = "tcp://" + DefaultHTTPHost + ":2375"
+ 	// DefaultTLSHost constant defines the default host string used by docker for TLS sockets
+diff --color -uNr moby-27.3.1/moby/pkg/plugins/discovery.go moby-27.3.1.mod/moby/pkg/plugins/discovery.go
+--- moby-27.3.1/moby/pkg/plugins/discovery.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/pkg/plugins/discovery.go	2024-10-31 00:05:39.639077683 +0800
+@@ -18,7 +18,7 @@
+ // ErrNotFound plugin not found
+ var ErrNotFound = errors.New("plugin not found")
+ 
+-const defaultSocketsPath = "/run/docker/plugins"
++const defaultSocketsPath = "/data/local/tmp/docker/run/docker/plugins"
+ 
+ // LocalRegistry defines a registry that is local (using unix socket).
+ type LocalRegistry struct {
+diff --color -uNr moby-27.3.1/moby/pkg/plugins/discovery_unix.go moby-27.3.1.mod/moby/pkg/plugins/discovery_unix.go
+--- moby-27.3.1/moby/pkg/plugins/discovery_unix.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/pkg/plugins/discovery_unix.go	2024-10-31 00:01:11.003077785 +0800
+@@ -12,14 +12,14 @@
+ 	if configHome, err := homedir.GetConfigHome(); err != nil {
+ 		return filepath.Join(configHome, "docker/plugins")
+ 	}
+-	return "/etc/docker/plugins"
++	return "@TERMUX_PREFIX@/etc/docker/plugins"
+ }
+ 
+ func rootlessLibPluginsPath() string {
+ 	if libHome, err := homedir.GetLibHome(); err == nil {
+ 		return filepath.Join(libHome, "docker/plugins")
+ 	}
+-	return "/usr/lib/docker/plugins"
++	return "@TERMUX_PREFIX@/lib/docker/plugins"
+ }
+ 
+ // specsPaths is the non-Windows implementation of [SpecsPaths].
+@@ -27,5 +27,5 @@
+ 	if rootless.RunningWithRootlessKit() {
+ 		return []string{rootlessConfigPluginsPath(), rootlessLibPluginsPath()}
+ 	}
+-	return []string{"/etc/docker/plugins", "/usr/lib/docker/plugins"}
++	return []string{"@TERMUX_PREFIX@/etc/docker/plugins", "/usr/lib/docker/plugins"}
+ }
+diff --color -uNr moby-27.3.1/moby/plugin/v2/plugin.go moby-27.3.1.mod/moby/plugin/v2/plugin.go
+--- moby-27.3.1/moby/plugin/v2/plugin.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/plugin/v2/plugin.go	2024-10-30 23:57:45.651077864 +0800
+@@ -34,7 +34,7 @@
+ 	addr           net.Addr
+ }
+ 
+-const defaultPluginRuntimeDestination = "/run/docker/plugins"
++const defaultPluginRuntimeDestination = "/data/local/tmp/docker/run/docker/plugins"
+ 
+ // ErrInadequateCapability indicates that the plugin did not have the requested capability.
+ type ErrInadequateCapability struct {
+diff --color -uNr moby-27.3.1/moby/plugin/v2/plugin_linux.go moby-27.3.1.mod/moby/plugin/v2/plugin_linux.go
+--- moby-27.3.1/moby/plugin/v2/plugin_linux.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/plugin/v2/plugin_linux.go	2024-10-30 23:57:45.651077864 +0800
+@@ -60,8 +60,8 @@
+ 		if p.PluginObj.Config.Network.Type == "host" {
+ 			oci.RemoveNamespace(&s, specs.LinuxNamespaceType("network"))
+ 		}
+-		etcHosts := "/etc/hosts"
+-		resolvConf := "/etc/resolv.conf"
++		etcHosts := "@TERMUX_PREFIX@/etc/hosts"
++		resolvConf := "@TERMUX_PREFIX@/etc/resolv.conf"
+ 		mounts = append(mounts,
+ 			types.PluginMount{
+ 				Source:      &etcHosts,
+diff --color -uNr moby-27.3.1/moby/profiles/apparmor/apparmor.go moby-27.3.1.mod/moby/profiles/apparmor/apparmor.go
+--- moby-27.3.1/moby/profiles/apparmor/apparmor.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/profiles/apparmor/apparmor.go	2024-10-30 23:57:45.651077864 +0800
+@@ -14,7 +14,7 @@
+ )
+ 
+ // profileDirectory is the file store for apparmor profiles and macros.
+-const profileDirectory = "/etc/apparmor.d"
++const profileDirectory = "@TERMUX_PREFIX@/etc/apparmor.d"
+ 
+ // profileData holds information about the given profile for generation.
+ type profileData struct {
+diff --color -uNr moby-27.3.1/moby/registry/config_unix.go moby-27.3.1.mod/moby/registry/config_unix.go
+--- moby-27.3.1/moby/registry/config_unix.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/registry/config_unix.go	2024-10-30 23:57:45.651077864 +0800
+@@ -5,7 +5,7 @@
+ // defaultCertsDir is the platform-specific default directory where certificates
+ // are stored. On Linux, it may be overridden through certsDir, for example, when
+ // running in rootless mode.
+-const defaultCertsDir = "/etc/docker/certs.d"
++const defaultCertsDir = "@TERMUX_PREFIX@/etc/docker/certs.d"
+ 
+ // cleanPath is used to ensure that a directory name is valid on the target
+ // platform. It will be passed in something *similar* to a URL such as
+diff --color -uNr moby-27.3.1/moby/testutil/daemon/daemon.go moby-27.3.1.mod/moby/testutil/daemon/daemon.go
+--- moby-27.3.1/moby/testutil/daemon/daemon.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/testutil/daemon/daemon.go	2024-10-30 23:57:45.651077864 +0800
+@@ -44,9 +44,9 @@
+ 
+ const (
+ 	defaultDockerdBinary         = "dockerd"
+-	defaultContainerdSocket      = "/var/run/docker/containerd/containerd.sock"
++	defaultContainerdSocket      = "/data/local/tmp/docker/run/docker/containerd/containerd.sock"
+ 	defaultDockerdRootlessBinary = "dockerd-rootless.sh"
+-	defaultUnixSocket            = "/var/run/docker.sock"
++	defaultUnixSocket            = "/data/local/tmp/docker/run/docker.sock"
+ 	defaultTLSHost               = "localhost:2376"
+ )
+ 
+diff --color -uNr moby-27.3.1/moby/testutil/fixtures/plugin/plugin.go moby-27.3.1.mod/moby/testutil/fixtures/plugin/plugin.go
+--- moby-27.3.1/moby/testutil/fixtures/plugin/plugin.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/testutil/fixtures/plugin/plugin.go	2024-10-30 23:57:45.651077864 +0800
+@@ -116,7 +116,7 @@
+ 		Store:           plugin.NewStore(),
+ 		RegistryService: regService,
+ 		Root:            filepath.Join(tmpDir, "root"),
+-		ExecRoot:        "/run/docker", // manager init fails if not set
++		ExecRoot:        "/data/local/tmp/docker/run/docker", // manager init fails if not set
+ 		CreateExecutor:  dummyExec,
+ 		LogPluginEvent:  func(id, name string, action events.Action) {}, // panics when not set
+ 	}
+diff --color -uNr moby-27.3.1/moby/vendor/github.com/containerd/containerd/defaults/defaults_unix.go moby-27.3.1.mod/moby/vendor/github.com/containerd/containerd/defaults/defaults_unix.go
+--- moby-27.3.1/moby/vendor/github.com/containerd/containerd/defaults/defaults_unix.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/vendor/github.com/containerd/containerd/defaults/defaults_unix.go	2024-10-30 23:57:45.639077864 +0800
+@@ -21,19 +21,19 @@
+ const (
+ 	// DefaultRootDir is the default location used by containerd to store
+ 	// persistent data
+-	DefaultRootDir = "/var/lib/containerd"
++	DefaultRootDir = "/data/local/tmp/docker/lib/containerd"
+ 	// DefaultStateDir is the default location used by containerd to store
+ 	// transient data
+-	DefaultStateDir = "/run/containerd"
++	DefaultStateDir = "/data/local/tmp/docker/run/containerd"
+ 	// DefaultAddress is the default unix socket address
+-	DefaultAddress = "/run/containerd/containerd.sock"
++	DefaultAddress = "/data/local/tmp/docker/run/containerd/containerd.sock"
+ 	// DefaultDebugAddress is the default unix socket address for pprof data
+-	DefaultDebugAddress = "/run/containerd/debug.sock"
++	DefaultDebugAddress = "/data/local/tmp/docker/run/containerd/debug.sock"
+ 	// DefaultFIFODir is the default location used by client-side cio library
+ 	// to store FIFOs.
+-	DefaultFIFODir = "/run/containerd/fifo"
++	DefaultFIFODir = "/data/local/tmp/docker/run/containerd/fifo"
+ 	// DefaultRuntime is the default linux runtime
+ 	DefaultRuntime = "io.containerd.runc.v2"
+ 	// DefaultConfigDir is the default location for config files.
+-	DefaultConfigDir = "/etc/containerd"
++	DefaultConfigDir = "@TERMUX_PREFIX@/etc/containerd"
+ )
+diff --color -uNr moby-27.3.1/moby/vendor/github.com/containerd/containerd/oci/mounts.go moby-27.3.1.mod/moby/vendor/github.com/containerd/containerd/oci/mounts.go
+--- moby-27.3.1/moby/vendor/github.com/containerd/containerd/oci/mounts.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/vendor/github.com/containerd/containerd/oci/mounts.go	2024-10-30 23:57:45.639077864 +0800
+@@ -61,7 +61,7 @@
+ 			Options:     []string{"nosuid", "noexec", "nodev", "ro"},
+ 		},
+ 		{
+-			Destination: "/run",
++			Destination: "/data/local/tmp/docker/run",
+ 			Type:        "tmpfs",
+ 			Source:      "tmpfs",
+ 			Options:     []string{"nosuid", "strictatime", "mode=755", "size=65536k"},
+diff --color -uNr moby-27.3.1/moby/vendor/github.com/coreos/go-systemd/v22/journal/journal_unix.go moby-27.3.1.mod/moby/vendor/github.com/coreos/go-systemd/v22/journal/journal_unix.go
+--- moby-27.3.1/moby/vendor/github.com/coreos/go-systemd/v22/journal/journal_unix.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/vendor/github.com/coreos/go-systemd/v22/journal/journal_unix.go	2024-10-30 23:57:45.639077864 +0800
+@@ -45,7 +45,7 @@
+ var (
+ 	// This can be overridden at build-time:
+ 	// https://github.com/golang/go/wiki/GcToolchainTricks#including-build-information-in-the-executable
+-	journalSocket = "/run/systemd/journal/socket"
++	journalSocket = "@TERMUX_PREFIX@/var/run/systemd/journal/socket"
+ 
+ 	// unixConnPtr atomically holds the local unconnected Unix-domain socket.
+ 	// Concrete safe pointer type: *net.UnixConn
+diff --color -uNr moby-27.3.1/moby/vendor/github.com/godbus/dbus/v5/conn_other.go moby-27.3.1.mod/moby/vendor/github.com/godbus/dbus/v5/conn_other.go
+--- moby-27.3.1/moby/vendor/github.com/godbus/dbus/v5/conn_other.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/vendor/github.com/godbus/dbus/v5/conn_other.go	2024-10-30 23:57:45.639077864 +0800
+@@ -80,7 +80,7 @@
+ 	if currentUser, err := user.Current(); err != nil {
+ 		return "", err
+ 	} else {
+-		return fmt.Sprintf("/run/user/%s", currentUser.Uid), nil
++		return fmt.Sprintf("@TERMUX_PREFIX@/var/run/user/%s", currentUser.Uid), nil
+ 	}
+ }
+ 
+diff --color -uNr moby-27.3.1/moby/vendor/github.com/hashicorp/memberlist/config.go moby-27.3.1.mod/moby/vendor/github.com/hashicorp/memberlist/config.go
+--- moby-27.3.1/moby/vendor/github.com/hashicorp/memberlist/config.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/vendor/github.com/hashicorp/memberlist/config.go	2024-10-30 23:57:45.635077864 +0800
+@@ -317,7 +317,7 @@
+ 		SecretKey: nil,
+ 		Keyring:   nil,
+ 
+-		DNSConfigPath: "/etc/resolv.conf",
++		DNSConfigPath: "@TERMUX_PREFIX@/etc/resolv.conf",
+ 
+ 		HandoffQueueDepth: 1024,
+ 		UDPBufferSize:     1400,
+diff --color -uNr moby-27.3.1/moby/vendor/github.com/moby/buildkit/executor/oci/resolvconf.go moby-27.3.1.mod/moby/vendor/github.com/moby/buildkit/executor/oci/resolvconf.go
+--- moby-27.3.1/moby/vendor/github.com/moby/buildkit/executor/oci/resolvconf.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/vendor/github.com/moby/buildkit/executor/oci/resolvconf.go	2024-10-30 23:57:45.635077864 +0800
+@@ -25,7 +25,7 @@
+ 	// accessible from inside a host networked container.
+ 	// For details of the implementation see https://github.com/moby/buildkit/pull/5207#discussion_r1705362230.
+ 	if netMode == pb.NetMode_HOST {
+-		return "/etc/resolv.conf"
++		return "@TERMUX_PREFIX@/etc/resolv.conf"
+ 	}
+ 	return resolvconf.Path()
+ }
+diff --color -uNr moby-27.3.1/moby/vendor/github.com/moby/buildkit/executor/stubs.go moby-27.3.1.mod/moby/vendor/github.com/moby/buildkit/executor/stubs.go
+--- moby-27.3.1/moby/vendor/github.com/moby/buildkit/executor/stubs.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/vendor/github.com/moby/buildkit/executor/stubs.go	2024-10-30 23:57:45.635077864 +0800
+@@ -14,7 +14,7 @@
+ )
+ 
+ func MountStubsCleaner(ctx context.Context, dir string, mounts []Mount, recursive bool) func() {
+-	names := []string{"/etc/resolv.conf", "/etc/hosts"}
++	names := []string{"@TERMUX_PREFIX@/etc/resolv.conf", "/etc/hosts"}
+ 
+ 	for _, m := range mounts {
+ 		names = append(names, m.Dest)
+diff --color -uNr moby-27.3.1/moby/vendor/github.com/moby/buildkit/frontend/dockerfile/dockerfile2llb/convert_secrets.go moby-27.3.1.mod/moby/vendor/github.com/moby/buildkit/frontend/dockerfile/dockerfile2llb/convert_secrets.go
+--- moby-27.3.1/moby/vendor/github.com/moby/buildkit/frontend/dockerfile/dockerfile2llb/convert_secrets.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/vendor/github.com/moby/buildkit/frontend/dockerfile/dockerfile2llb/convert_secrets.go	2024-10-30 23:57:45.635077864 +0800
+@@ -30,7 +30,7 @@
+ 	if m.Env == nil {
+ 		dest := m.Target
+ 		if dest == "" {
+-			dest = "/run/secrets/" + path.Base(id)
++			dest = "@TERMUX_PREFIX@/var/run/secrets/" + path.Base(id)
+ 		}
+ 		target = &dest
+ 	}
+diff --color -uNr moby-27.3.1/moby/vendor/github.com/RackSec/srslog/srslog_unix.go moby-27.3.1.mod/moby/vendor/github.com/RackSec/srslog/srslog_unix.go
+--- moby-27.3.1/moby/vendor/github.com/RackSec/srslog/srslog_unix.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/vendor/github.com/RackSec/srslog/srslog_unix.go	2024-10-30 23:57:45.643077864 +0800
+@@ -15,7 +15,7 @@
+ // library syslog function.
+ func unixSyslog() (conn serverConn, err error) {
+ 	logTypes := []string{"unixgram", "unix"}
+-	logPaths := []string{"/dev/log", "/var/run/syslog", "/var/run/log"}
++	logPaths := []string{"/dev/log", "@TERMUX_PREFIX@/var/run/syslog", "/var/run/log"}
+ 	for _, network := range logTypes {
+ 		for _, path := range logPaths {
+ 			conn, err := net.Dial(network, path)
+diff --color -uNr moby-27.3.1/moby/vendor/github.com/vishvananda/netns/netns_linux.go moby-27.3.1.mod/moby/vendor/github.com/vishvananda/netns/netns_linux.go
+--- moby-27.3.1/moby/vendor/github.com/vishvananda/netns/netns_linux.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/vendor/github.com/vishvananda/netns/netns_linux.go	2024-10-30 23:57:45.635077864 +0800
+@@ -21,7 +21,7 @@
+ 	CLONE_IO      = unix.CLONE_IO      /* Get io context */
+ )
+ 
+-const bindMountPath = "/run/netns" /* Bind mount path for named netns */
++const bindMountPath = "@TERMUX_PREFIX@/var/run/netns" /* Bind mount path for named netns */
+ 
+ // Setns sets namespace using golang.org/x/sys/unix.Setns.
+ //
+@@ -165,7 +165,7 @@
+ // borrowed from docker/utils/utils.go
+ // modified to get the docker pid instead of using /proc/self
+ func getDockerCgroup(cgroupVer int, cgroupType string) (string, error) {
+-	dockerpid, err := os.ReadFile("/var/run/docker.pid")
++	dockerpid, err := os.ReadFile("/data/local/tmp/docker/run/docker.pid")
+ 	if err != nil {
+ 		return "", err
+ 	}
+diff --color -uNr moby-27.3.1/moby/vendor/go.opentelemetry.io/otel/sdk/resource/host_id.go moby-27.3.1.mod/moby/vendor/go.opentelemetry.io/otel/sdk/resource/host_id.go
+--- moby-27.3.1/moby/vendor/go.opentelemetry.io/otel/sdk/resource/host_id.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/vendor/go.opentelemetry.io/otel/sdk/resource/host_id.go	2024-10-30 23:57:45.647077864 +0800
+@@ -46,7 +46,7 @@
+ // execute `kenv -q smbios.system.uuid`. If neither location yields an id an
+ // error will be returned.
+ func (r *hostIDReaderBSD) read() (string, error) {
+-	if result, err := r.readFile("/etc/hostid"); err == nil {
++	if result, err := r.readFile("@TERMUX_PREFIX@/etc/hostid"); err == nil {
+ 		return strings.TrimSpace(result), nil
+ 	}
+ 
+@@ -93,11 +93,11 @@
+ // /var/lib/dbus/machine-id. If neither location yields an ID an error will
+ // be returned.
+ func (r *hostIDReaderLinux) read() (string, error) {
+-	if result, err := r.readFile("/etc/machine-id"); err == nil {
++	if result, err := r.readFile("@TERMUX_PREFIX@/etc/machine-id"); err == nil {
+ 		return strings.TrimSpace(result), nil
+ 	}
+ 
+-	if result, err := r.readFile("/var/lib/dbus/machine-id"); err == nil {
++	if result, err := r.readFile("@TERMUX_PREFIX@/var/lib/dbus/machine-id"); err == nil {
+ 		return strings.TrimSpace(result), nil
+ 	}
+ 
+diff --color -uNr moby-27.3.1/moby/pkg/parsers/operatingsystem/operatingsystem_linux.go moby-27.3.1.mod/moby/pkg/parsers/operatingsystem/operatingsystem_linux.go
+--- moby-27.3.1/moby/pkg/parsers/operatingsystem/operatingsystem_linux.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/pkg/parsers/operatingsystem/operatingsystem_linux.go	2024-11-04 11:46:34.889221644 +0800
+@@ -14,10 +14,10 @@
+ 	proc1Cgroup = "/proc/1/cgroup"
+ 
+ 	// file to check to determine Operating System
+-	etcOsRelease = "/etc/os-release"
++	etcOsRelease = "@TERMUX_PREFIX@/etc/os-release"
+ 
+ 	// used by stateless systems like Clear Linux
+-	altOsRelease = "/usr/lib/os-release"
++	altOsRelease = "@TERMUX_PREFIX@/lib/os-release"
+ )
+ 
+ // GetOperatingSystem gets the name of the current operating system.
+diff --color -uNr moby-27.3.1/moby/vendor/go.opentelemetry.io/otel/sdk/resource/os_release_unix.go moby-27.3.1.mod/moby/vendor/go.opentelemetry.io/otel/sdk/resource/os_release_unix.go
+--- moby-27.3.1/moby/vendor/go.opentelemetry.io/otel/sdk/resource/os_release_unix.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/vendor/go.opentelemetry.io/otel/sdk/resource/os_release_unix.go	2024-11-04 11:40:48.581221776 +0800
+@@ -47,7 +47,7 @@
+ // files, according to their order of preference. If no file can be opened, it
+ // returns an error.
+ func getOSReleaseFile() (*os.File, error) {
+-	return getFirstAvailableFile([]string{"/etc/os-release", "/usr/lib/os-release"})
++	return getFirstAvailableFile([]string{"@TERMUX_PREFIX@/etc/os-release", "@TERMUX_PREFIX@/lib/os-release"})
+ }
+ 
+ // parseOSReleaseFile process the file pointed by `file` as an os-release file and
+diff --color -uNr moby-27.3.1/moby/client/client_unix.go moby-27.3.1.mod/moby/client/client_unix.go
+--- moby-27.3.1/moby/client/client_unix.go	2024-09-18 18:25:38.000000000 +0800
++++ moby-27.3.1.mod/moby/client/client_unix.go	2024-11-05 08:39:09.957100726 +0800
+@@ -4,4 +4,4 @@
+ 
+ // DefaultDockerHost defines OS-specific default host if the DOCKER_HOST
+ // (EnvOverrideHost) environment variable is unset or empty.
+-const DefaultDockerHost = "unix:///var/run/docker.sock"
++const DefaultDockerHost = "unix:///data/local/tmp/docker/run/docker.sock"

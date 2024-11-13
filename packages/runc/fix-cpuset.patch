@@ -1,0 +1,85 @@
+diff --color -uNr runc-1.2.0/runc/libcontainer/cgroups/fs/cpuset.go runc-1.2.0.mod/runc/libcontainer/cgroups/fs/cpuset.go
+--- runc-1.2.0/runc/libcontainer/cgroups/fs/cpuset.go	2024-10-22 06:21:47.000000000 +0800
++++ runc-1.2.0.mod/runc/libcontainer/cgroups/fs/cpuset.go	2024-10-31 08:25:00.574699077 +0800
+@@ -26,12 +26,12 @@
+ 
+ func (s *CpusetGroup) Set(path string, r *configs.Resources) error {
+ 	if r.CpusetCpus != "" {
+-		if err := cgroups.WriteFile(path, "cpuset.cpus", r.CpusetCpus); err != nil {
++		if err := cgroups.WriteFile(path, "cpus", r.CpusetCpus); err != nil {
+ 			return err
+ 		}
+ 	}
+ 	if r.CpusetMems != "" {
+-		if err := cgroups.WriteFile(path, "cpuset.mems", r.CpusetMems); err != nil {
++		if err := cgroups.WriteFile(path, "mems", r.CpusetMems); err != nil {
+ 			return err
+ 		}
+ 	}
+@@ -83,7 +83,7 @@
+ func (s *CpusetGroup) GetStats(path string, stats *cgroups.Stats) error {
+ 	var err error
+ 
+-	stats.CPUSetStats.CPUs, err = getCpusetStat(path, "cpuset.cpus")
++	stats.CPUSetStats.CPUs, err = getCpusetStat(path, "cpus")
+ 	if err != nil && !errors.Is(err, os.ErrNotExist) {
+ 		return err
+ 	}
+@@ -93,7 +93,7 @@
+ 		return err
+ 	}
+ 
+-	stats.CPUSetStats.Mems, err = getCpusetStat(path, "cpuset.mems")
++	stats.CPUSetStats.Mems, err = getCpusetStat(path, "mems")
+ 	if err != nil && !errors.Is(err, os.ErrNotExist) {
+ 		return err
+ 	}
+@@ -172,10 +172,10 @@
+ }
+ 
+ func getCpusetSubsystemSettings(parent string) (cpus, mems string, err error) {
+-	if cpus, err = cgroups.ReadFile(parent, "cpuset.cpus"); err != nil {
++	if cpus, err = cgroups.ReadFile(parent, "cpus"); err != nil {
+ 		return
+ 	}
+-	if mems, err = cgroups.ReadFile(parent, "cpuset.mems"); err != nil {
++	if mems, err = cgroups.ReadFile(parent, "mems"); err != nil {
+ 		return
+ 	}
+ 	return cpus, mems, nil
+@@ -221,12 +221,12 @@
+ 	}
+ 
+ 	if isEmptyCpuset(currentCpus) {
+-		if err := cgroups.WriteFile(current, "cpuset.cpus", parentCpus); err != nil {
++		if err := cgroups.WriteFile(current, "cpus", parentCpus); err != nil {
+ 			return err
+ 		}
+ 	}
+ 	if isEmptyCpuset(currentMems) {
+-		if err := cgroups.WriteFile(current, "cpuset.mems", parentMems); err != nil {
++		if err := cgroups.WriteFile(current, "mems", parentMems); err != nil {
+ 			return err
+ 		}
+ 	}
+diff --color -uNr runc-1.2.0/runc/libcontainer/cgroups/systemd/v2.go runc-1.2.0.mod/runc/libcontainer/cgroups/systemd/v2.go
+--- runc-1.2.0/runc/libcontainer/cgroups/systemd/v2.go	2024-10-22 06:21:47.000000000 +0800
++++ runc-1.2.0.mod/runc/libcontainer/cgroups/systemd/v2.go	2024-10-31 08:25:01.642699077 +0800
+@@ -130,14 +130,14 @@
+ 			props = append(props,
+ 				newProp("CPUWeight", num))
+ 
+-		case "cpuset.cpus", "cpuset.mems":
++		case "cpus", "mems":
+ 			bits, err := RangeToBits(v)
+ 			if err != nil {
+ 				return nil, fmt.Errorf("unified resource %q=%q conversion error: %w", k, v, err)
+ 			}
+ 			m := map[string]string{
+-				"cpuset.cpus": "AllowedCPUs",
+-				"cpuset.mems": "AllowedMemoryNodes",
++				"cpus": "AllowedCPUs",
++				"mems": "AllowedMemoryNodes",
+ 			}
+ 			// systemd only supports these properties since v244
+ 			sdVer := systemdVersion(cm)

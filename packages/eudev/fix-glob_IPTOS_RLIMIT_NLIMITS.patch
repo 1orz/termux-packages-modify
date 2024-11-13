@@ -1,0 +1,37 @@
+diff --color -uNr eudev-3.2.14/src/shared/util.c eudev-3.2.14.mod/src/shared/util.c
+--- eudev-3.2.14/src/shared/util.c	2021-10-17 05:13:28.000000000 +0800
++++ eudev-3.2.14.mod/src/shared/util.c	2024-10-24 22:54:17.997369564 +0800
+@@ -44,7 +44,6 @@
+ #include <dlfcn.h>
+ #include <sys/wait.h>
+ #include <sys/time.h>
+-#include <glob.h>
+ #include <grp.h>
+ #include <sys/mman.h>
+ #include <sys/vfs.h>
+@@ -69,6 +68,25 @@
+ #include "random-util.h"
+ #include "terminal-util.h"
+ 
++#ifndef RLIMIT_NLIMITS
++#define RLIMIT_NLIMITS 10 // Define a fallback if RLIMIT_NLIMITS is not available
++#endif
++
++#define _RLIMIT_MAX (RLIMIT_RTTIME + 1 > RLIMIT_NLIMITS ? RLIMIT_RTTIME + 1 : RLIMIT_NLIMITS)
++
++#ifndef IPTOS_LOWCOST
++#define IPTOS_LOWCOST 0x02
++#endif
++#ifndef IPTOS_RELIABILITY
++#define IPTOS_RELIABILITY 0x04
++#endif
++#ifndef IPTOS_THROUGHPUT
++#define IPTOS_THROUGHPUT 0x08
++#endif
++#ifndef IPTOS_LOWDELAY
++#define IPTOS_LOWDELAY 0x10
++#endif
++
+ /* Put this test here for a lack of better place */
+ assert_cc(EAGAIN == EWOULDBLOCK);
+ 

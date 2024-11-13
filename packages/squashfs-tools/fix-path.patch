@@ -1,0 +1,36 @@
+diff --color -uNr squashfs-tools-4.6.1/squashfs-tools/action.c squashfs-tools-4.6.1.mod/squashfs-tools/action.c
+--- squashfs-tools-4.6.1/squashfs-tools/action.c	2023-03-26 04:53:37.000000000 +0800
++++ squashfs-tools-4.6.1.mod/squashfs-tools/action.c	2024-10-30 19:43:15.999456620 +0800
+@@ -2947,7 +2947,7 @@
+ 		if(res == -1)
+ 			exit(EXIT_FAILURE);
+ 
+-		execl("/bin/sh", "sh", "-c", atom->argv[0], (char *) NULL);
++		execl("@TERMUX_PREFIX@/bin/sh", "sh", "-c", atom->argv[0], (char *) NULL);
+ 		exit(EXIT_FAILURE);
+ 	}
+ 
+diff --color -uNr squashfs-tools-4.6.1/squashfs-tools/date.c squashfs-tools-4.6.1.mod/squashfs-tools/date.c
+--- squashfs-tools-4.6.1/squashfs-tools/date.c	2023-03-26 04:53:37.000000000 +0800
++++ squashfs-tools-4.6.1.mod/squashfs-tools/date.c	2024-10-30 19:43:15.999456620 +0800
+@@ -58,7 +58,7 @@
+ 		if(res == -1)
+ 			exit(EXIT_FAILURE);
+ 
+-		execl("/usr/bin/date", "date", "-d", string, "+%s", (char *) NULL);
++		execl("@TERMUX_PREFIX@/bin/date", "date", "-d", string, "+%s", (char *) NULL);
+ 		exit(EXIT_FAILURE);
+ 	}
+ 
+diff --color -uNr squashfs-tools-4.6.1/squashfs-tools/pseudo.c squashfs-tools-4.6.1.mod/squashfs-tools/pseudo.c
+--- squashfs-tools-4.6.1/squashfs-tools/pseudo.c	2023-03-26 04:53:37.000000000 +0800
++++ squashfs-tools-4.6.1.mod/squashfs-tools/pseudo.c	2024-10-30 19:43:16.003456620 +0800
+@@ -288,7 +288,7 @@
+ 		if(res == -1)
+ 			exit(EXIT_FAILURE);
+ 
+-		execl("/bin/sh", "sh", "-c", dev->command, (char *) NULL);
++		execl("@TERMUX_PREFIX@/bin/sh", "sh", "-c", dev->command, (char *) NULL);
+ 		exit(EXIT_FAILURE);
+ 	}
+ 

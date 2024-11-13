@@ -1,0 +1,1076 @@
+diff --color -uNr lxd-6.1/lxd/client/util.go lxd-6.1.mod/lxd/client/util.go
+--- lxd-6.1/lxd/client/util.go	2024-07-08 15:45:26.000000000 +0800
++++ lxd-6.1.mod/lxd/client/util.go	2024-10-31 20:26:43.571994430 +0800
+@@ -9,7 +9,7 @@
+ 	"net/url"
+ 	"os"
+ 	"os/exec"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ 	"time"
+ 
+@@ -270,7 +270,7 @@
+ 		return err
+ 	}
+ 
+-	switch runtime.GOOS {
++	switch "linux" {
+ 	case "linux":
+ 		err = exec.Command("xdg-open", url).Start()
+ 	case "windows":
+diff --color -uNr lxd-6.1/lxd/lxc/config/remote.go lxd-6.1.mod/lxd/lxc/config/remote.go
+--- lxd-6.1/lxd/lxc/config/remote.go	2024-07-08 15:45:26.000000000 +0800
++++ lxd-6.1.mod/lxd/lxc/config/remote.go	2024-10-31 20:26:43.571994430 +0800
+@@ -9,7 +9,7 @@
+ 	"net"
+ 	"net/http"
+ 	"os"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ 
+ 	"github.com/zitadel/oidc/v3/pkg/oidc"
+@@ -84,7 +84,7 @@
+ // getPublicRemoteByName returns the Remote with the given name.
+ func (c *Config) getPublicRemoteByName(name string) (*Remote, error) {
+ 	// Handle "local" on non-Linux
+-	if name == "local" && runtime.GOOS != "linux" {
++	if name == "local" && "linux" != "linux" {
+ 		return nil, ErrNotLinux
+ 	}
+ 
+diff --color -uNr lxd-6.1/lxd/lxc/console.go lxd-6.1.mod/lxd/lxc/console.go
+--- lxd-6.1/lxd/lxc/console.go	2024-07-08 15:45:26.000000000 +0800
++++ lxd-6.1.mod/lxd/lxc/console.go	2024-10-31 20:26:43.571994430 +0800
+@@ -7,7 +7,7 @@
+ 	"net"
+ 	"os"
+ 	"os/exec"
+-	"runtime"
++	_ "runtime"
+ 	"strconv"
+ 	"sync"
+ 
+@@ -252,7 +252,7 @@
+ 	// Setup local socket.
+ 	var socket string
+ 	var listener net.Listener
+-	if runtime.GOOS != "windows" {
++	if "linux" != "windows" {
+ 		// Create a temporary unix socket mirroring the instance's spice socket.
+ 		if !shared.PathExists(conf.ConfigPath("sockets")) {
+ 			err := os.MkdirAll(conf.ConfigPath("sockets"), 0700)
+diff --color -uNr lxd-6.1/lxd/shared/util.go lxd-6.1.mod/lxd/shared/util.go
+--- lxd-6.1/lxd/shared/util.go	2024-07-08 15:45:26.000000000 +0800
++++ lxd-6.1.mod/lxd/shared/util.go	2024-10-31 20:26:43.575994430 +0800
+@@ -20,7 +20,7 @@
+ 	"path/filepath"
+ 	"reflect"
+ 	"regexp"
+-	"runtime"
++	_ "runtime"
+ 	"strconv"
+ 	"strings"
+ 	"time"
+@@ -527,7 +527,7 @@
+ 			return err
+ 		}
+ 
+-		if runtime.GOOS != "windows" {
++		if "linux" != "windows" {
+ 			return os.Lchown(dest, uid, gid)
+ 		}
+ 
+@@ -559,7 +559,7 @@
+ 	}
+ 
+ 	/* chown not supported on windows */
+-	if runtime.GOOS != "windows" {
++	if "linux" != "windows" {
+ 		err = d.Chown(uid, gid)
+ 		if err != nil {
+ 			return err
+diff --color -uNr lxd-6.1/lxd/shared/version/useragent.go lxd-6.1.mod/lxd/shared/version/useragent.go
+--- lxd-6.1/lxd/shared/version/useragent.go	2024-07-08 15:45:26.000000000 +0800
++++ lxd-6.1.mod/lxd/shared/version/useragent.go	2024-10-31 20:26:43.575994430 +0800
+@@ -27,7 +27,7 @@
+ 		panic(err)
+ 	}
+ 
+-	osTokens := []string{cases.Title(language.English).String(runtime.GOOS), arch}
++	osTokens := []string{cases.Title(language.English).String("linux"), arch}
+ 	osTokens = append(osTokens, getPlatformVersionStrings()...)
+ 
+ 	// Initial version string
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/canonical/go-dqlite/app/app.go lxd-6.1.mod/lxd/vendor/github.com/canonical/go-dqlite/app/app.go
+--- lxd-6.1/lxd/vendor/github.com/canonical/go-dqlite/app/app.go	2024-07-08 18:32:22.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/canonical/go-dqlite/app/app.go	2024-10-31 20:26:43.579994430 +0800
+@@ -232,7 +232,7 @@
+ 		return nil, fmt.Errorf("invalid voters %d: must be an odd number greater than 1", o.Voters)
+ 	}
+ 
+-	if runtime.GOOS != "linux" && nodeBindAddress[0] == '@' {
++	if "linux" != "linux" && nodeBindAddress[0] == '@' {
+ 		// Do not use abstract socket on other platforms and left trim "@"
+ 		nodeBindAddress = nodeBindAddress[1:]
+ 	}
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/digitalocean/go-libvirt/socket/dialers/gossh.go lxd-6.1.mod/lxd/vendor/github.com/digitalocean/go-libvirt/socket/dialers/gossh.go
+--- lxd-6.1/lxd/vendor/github.com/digitalocean/go-libvirt/socket/dialers/gossh.go	2024-07-08 18:32:22.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/digitalocean/go-libvirt/socket/dialers/gossh.go	2024-10-31 20:26:43.579994430 +0800
+@@ -8,7 +8,7 @@
+ 	"os"
+ 	"os/user"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ 	"time"
+ 
+@@ -149,7 +149,7 @@
+ func defaultSSHKnownHostsFile() string {
+ 	configDir, err := os.UserConfigDir()
+ 	if err == nil {
+-		if runtime.GOOS != "windows" {
++		if "linux" != "windows" {
+ 			configDir = filepath.Join(configDir, "libvirt")
+ 		}
+ 		return filepath.Join(configDir, "known_hosts")
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/digitalocean/go-smbios/smbios/stream_others.go lxd-6.1.mod/lxd/vendor/github.com/digitalocean/go-smbios/smbios/stream_others.go
+--- lxd-6.1/lxd/vendor/github.com/digitalocean/go-smbios/smbios/stream_others.go	2024-07-08 18:32:22.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/digitalocean/go-smbios/smbios/stream_others.go	2024-10-31 20:26:43.579994430 +0800
+@@ -19,10 +19,10 @@
+ import (
+ 	"fmt"
+ 	"io"
+-	"runtime"
++	_ "runtime"
+ )
+ 
+ // stream is not implemented for unsupported platforms.
+ func stream() (io.ReadCloser, EntryPoint, error) {
+-	return nil, nil, fmt.Errorf("opening SMBIOS stream not implemented on %q", runtime.GOOS)
++	return nil, nil, fmt.Errorf("opening SMBIOS stream not implemented on %q", "linux")
+ }
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/go-acme/lego/v4/acme/api/internal/sender/sender.go lxd-6.1.mod/lxd/vendor/github.com/go-acme/lego/v4/acme/api/internal/sender/sender.go
+--- lxd-6.1/lxd/vendor/github.com/go-acme/lego/v4/acme/api/internal/sender/sender.go	2024-07-08 18:32:22.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/go-acme/lego/v4/acme/api/internal/sender/sender.go	2024-10-31 20:26:43.583994430 +0800
+@@ -113,7 +113,7 @@
+ 
+ // formatUserAgent builds and returns the User-Agent string to use in requests.
+ func (d *Doer) formatUserAgent() string {
+-	ua := fmt.Sprintf("%s %s (%s; %s; %s)", d.userAgent, ourUserAgent, ourUserAgentComment, runtime.GOOS, runtime.GOARCH)
++	ua := fmt.Sprintf("%s %s (%s; %s; %s)", d.userAgent, ourUserAgent, ourUserAgentComment, "linux", runtime.GOARCH)
+ 	return strings.TrimSpace(ua)
+ }
+ 
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/go-ini/ini/ini.go lxd-6.1.mod/lxd/vendor/github.com/go-ini/ini/ini.go
+--- lxd-6.1/lxd/vendor/github.com/go-ini/ini/ini.go	2024-07-08 18:32:22.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/go-ini/ini/ini.go	2024-10-31 20:26:43.583994430 +0800
+@@ -18,7 +18,7 @@
+ import (
+ 	"os"
+ 	"regexp"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ )
+ 
+@@ -58,7 +58,7 @@
+ var inTest = len(os.Args) > 0 && strings.HasSuffix(strings.TrimSuffix(os.Args[0], ".exe"), ".test")
+ 
+ func init() {
+-	if runtime.GOOS == "windows" && !inTest {
++	if "linux" == "windows" && !inTest {
+ 		LineBreak = "\r\n"
+ 	}
+ }
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/google/gopacket/layers/enums.go lxd-6.1.mod/lxd/vendor/github.com/google/gopacket/layers/enums.go
+--- lxd-6.1/lxd/vendor/github.com/google/gopacket/layers/enums.go	2024-07-08 18:32:22.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/google/gopacket/layers/enums.go	2024-10-31 20:26:43.583994430 +0800
+@@ -9,7 +9,7 @@
+ 
+ import (
+ 	"fmt"
+-	"runtime"
++	_ "runtime"
+ 
+ 	"github.com/google/gopacket"
+ )
+@@ -375,7 +375,7 @@
+ 	LinkTypeMetadata[LinkTypeRaw] = EnumMetadata{DecodeWith: gopacket.DecodeFunc(decodeIPv4or6), Name: "Raw"}
+ 	// See https://github.com/the-tcpdump-group/libpcap/blob/170f717e6e818cdc4bcbbfd906b63088eaa88fa0/pcap/dlt.h#L85
+ 	// Or https://github.com/wireshark/wireshark/blob/854cfe53efe44080609c78053ecfb2342ad84a08/wiretap/pcap-common.c#L508
+-	if runtime.GOOS == "openbsd" {
++	if "linux" == "openbsd" {
+ 		LinkTypeMetadata[14] = EnumMetadata{DecodeWith: gopacket.DecodeFunc(decodeIPv4or6), Name: "Raw"}
+ 	} else {
+ 		LinkTypeMetadata[12] = EnumMetadata{DecodeWith: gopacket.DecodeFunc(decodeIPv4or6), Name: "Raw"}
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/jaypipes/pcidb/context.go lxd-6.1.mod/lxd/vendor/github.com/jaypipes/pcidb/context.go
+--- lxd-6.1/lxd/vendor/github.com/jaypipes/pcidb/context.go	2024-07-08 18:32:22.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/jaypipes/pcidb/context.go	2024-10-31 20:26:43.587994430 +0800
+@@ -4,7 +4,7 @@
+ 	"fmt"
+ 	"os"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 
+ 	homedir "github.com/mitchellh/go-homedir"
+ )
+@@ -65,7 +65,7 @@
+ 
+ 	rootPath := ctx.chroot
+ 
+-	if runtime.GOOS != "windows" {
++	if "linux" != "windows" {
+ 		ctx.searchPaths = append(
+ 			ctx.searchPaths,
+ 			filepath.Join(rootPath, "usr", "share", "hwdata", "pci.ids"),
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/j-keck/arping/arping_bsd.go lxd-6.1.mod/lxd/vendor/github.com/j-keck/arping/arping_bsd.go
+--- lxd-6.1/lxd/vendor/github.com/j-keck/arping/arping_bsd.go	2024-07-08 18:32:22.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/j-keck/arping/arping_bsd.go	2024-10-31 20:26:43.587994430 +0800
+@@ -7,7 +7,7 @@
+ 	"fmt"
+ 	"net"
+ 	"os"
+-	"runtime"
++	_ "runtime"
+ 	"syscall"
+ 	"time"
+ )
+@@ -87,7 +87,7 @@
+ 	// https://www.freebsd.org/cgi/man.cgi?bpf(4)#BPF_HEADER
+ 	//
+ 	var bpfHdrLength int
+-	if runtime.GOOS == "freebsd" {
++	if "linux" == "freebsd" {
+ 		bpfHdrLength = 26
+ 	} else {
+ 		bpfHdrLength = 18
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/klauspost/cpuid/v2/cpuid.go lxd-6.1.mod/lxd/vendor/github.com/klauspost/cpuid/v2/cpuid.go
+--- lxd-6.1/lxd/vendor/github.com/klauspost/cpuid/v2/cpuid.go	2024-07-08 18:32:22.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/klauspost/cpuid/v2/cpuid.go	2024-10-31 20:26:43.587994430 +0800
+@@ -16,7 +16,7 @@
+ 	"math"
+ 	"math/bits"
+ 	"os"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ )
+ 
+@@ -1257,7 +1257,7 @@
+ 			// ZMM16-ZMM31 state are enabled by OS)
+ 			/// and that XCR0[2:1] = ‘11b’ (XMM state and YMM state are enabled by OS).
+ 			hasAVX512 := (eax>>5)&7 == 7 && (eax>>1)&3 == 3
+-			if runtime.GOOS == "darwin" {
++			if "linux" == "darwin" {
+ 				hasAVX512 = fs.inSet(AVX) && darwinHasAVX512()
+ 			}
+ 			if hasAVX512 {
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/klauspost/cpuid/v2/detect_arm64.go lxd-6.1.mod/lxd/vendor/github.com/klauspost/cpuid/v2/detect_arm64.go
+--- lxd-6.1/lxd/vendor/github.com/klauspost/cpuid/v2/detect_arm64.go	2024-07-08 18:32:22.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/klauspost/cpuid/v2/detect_arm64.go	2024-10-31 20:26:43.587994430 +0800
+@@ -24,7 +24,7 @@
+ 	detectOS(c)
+ 
+ 	// ARM64 disabled since it may crash if interrupt is not intercepted by OS.
+-	if safe && !c.Supports(ARMCPUID) && runtime.GOOS != "freebsd" {
++	if safe && !c.Supports(ARMCPUID) && "linux" != "freebsd" {
+ 		return
+ 	}
+ 	midr := getMidr()
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/klauspost/cpuid/v2/os_darwin_arm64.go lxd-6.1.mod/lxd/vendor/github.com/klauspost/cpuid/v2/os_darwin_arm64.go
+--- lxd-6.1/lxd/vendor/github.com/klauspost/cpuid/v2/os_darwin_arm64.go	2024-07-08 18:32:22.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/klauspost/cpuid/v2/os_darwin_arm64.go	2024-10-31 20:26:43.591994430 +0800
+@@ -10,7 +10,7 @@
+ )
+ 
+ func detectOS(c *CPUInfo) bool {
+-	if runtime.GOOS != "ios" {
++	if "linux" != "ios" {
+ 		tryToFillCPUInfoFomSysctl(c)
+ 	}
+ 	// There are no hw.optional sysctl values for the below features on Mac OS 11.0
+@@ -18,7 +18,7 @@
+ 	// Apple Silicon M1 supports to be available as a minimal set of features
+ 	// to all Go programs running on darwin/arm64.
+ 	// TODO: Add more if we know them.
+-	c.featureSet.setIf(runtime.GOOS != "ios", AESARM, PMULL, SHA1, SHA2)
++	c.featureSet.setIf("linux" != "ios", AESARM, PMULL, SHA1, SHA2)
+ 
+ 	return true
+ }
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/klauspost/cpuid/v2/os_linux_arm64.go lxd-6.1.mod/lxd/vendor/github.com/klauspost/cpuid/v2/os_linux_arm64.go
+--- lxd-6.1/lxd/vendor/github.com/klauspost/cpuid/v2/os_linux_arm64.go	2024-07-08 18:32:22.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/klauspost/cpuid/v2/os_linux_arm64.go	2024-10-31 20:26:43.591994430 +0800
+@@ -120,7 +120,7 @@
+ 	// The Samsung S9+ kernel reports support for atomics, but not all cores
+ 	// actually support them, resulting in SIGILL. See issue #28431.
+ 	// TODO(elias.naur): Only disable the optimization on bad chipsets on android.
+-	c.featureSet.setIf(isSet(hwcap, hwcap_ATOMICS) && runtime.GOOS != "android", ATOMICS)
++	c.featureSet.setIf(isSet(hwcap, hwcap_ATOMICS) && "linux" != "android", ATOMICS)
+ 
+ 	return true
+ }
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/mdlayher/ndp/conn.go lxd-6.1.mod/lxd/vendor/github.com/mdlayher/ndp/conn.go
+--- lxd-6.1/lxd/vendor/github.com/mdlayher/ndp/conn.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/mdlayher/ndp/conn.go	2024-10-31 20:26:43.591994430 +0800
+@@ -5,7 +5,7 @@
+ 	"fmt"
+ 	"net"
+ 	"net/netip"
+-	"runtime"
++	_ "runtime"
+ 	"time"
+ 
+ 	"golang.org/x/net/icmp"
+@@ -61,7 +61,7 @@
+ 		return nil, netip.Addr{}, err
+ 	}
+ 
+-	if runtime.GOOS != "windows" {
++	if "linux" != "windows" {
+ 		// Calculate and place ICMPv6 checksum at correct offset in all
+ 		// messages (not implemented by golang.org/x/net/ipv6 on Windows).
+ 		const chkOff = 2
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/mdlayher/socket/accept.go lxd-6.1.mod/lxd/vendor/github.com/mdlayher/socket/accept.go
+--- lxd-6.1/lxd/vendor/github.com/mdlayher/socket/accept.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/mdlayher/socket/accept.go	2024-10-31 20:26:43.591994430 +0800
+@@ -5,7 +5,7 @@
+ 
+ import (
+ 	"fmt"
+-	"runtime"
++	_ "runtime"
+ 
+ 	"golang.org/x/sys/unix"
+ )
+@@ -16,7 +16,7 @@
+ func accept(fd, flags int) (int, unix.Sockaddr, error) {
+ 	if flags != 0 {
+ 		// These operating systems have no support for flags to accept(2).
+-		return 0, nil, fmt.Errorf("socket: Conn.Accept flags are ineffective on %s", runtime.GOOS)
++		return 0, nil, fmt.Errorf("socket: Conn.Accept flags are ineffective on %s", "linux")
+ 	}
+ 
+ 	return unix.Accept(fd)
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/mdlayher/socket/netns_others.go lxd-6.1.mod/lxd/vendor/github.com/mdlayher/socket/netns_others.go
+--- lxd-6.1/lxd/vendor/github.com/mdlayher/socket/netns_others.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/mdlayher/socket/netns_others.go	2024-10-31 20:26:43.591994430 +0800
+@@ -5,10 +5,10 @@
+ 
+ import (
+ 	"fmt"
+-	"runtime"
++	_ "runtime"
+ )
+ 
+ // withNetNS returns an error on non-Linux systems.
+ func withNetNS(_ int, _ func() (*Conn, error)) (*Conn, error) {
+-	return nil, fmt.Errorf("socket: Linux network namespace support is not available on %s", runtime.GOOS)
++	return nil, fmt.Errorf("socket: Linux network namespace support is not available on %s", "linux")
+ }
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/mdlayher/vsock/vsock_others.go lxd-6.1.mod/lxd/vendor/github.com/mdlayher/vsock/vsock_others.go
+--- lxd-6.1/lxd/vendor/github.com/mdlayher/vsock/vsock_others.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/mdlayher/vsock/vsock_others.go	2024-10-31 20:26:43.591994430 +0800
+@@ -7,14 +7,14 @@
+ 	"fmt"
+ 	"net"
+ 	"os"
+-	"runtime"
++	_ "runtime"
+ 	"syscall"
+ 	"time"
+ )
+ 
+ // errUnimplemented is returned by all functions on platforms that
+ // cannot make use of VM sockets.
+-var errUnimplemented = fmt.Errorf("vsock: not implemented on %s", runtime.GOOS)
++var errUnimplemented = fmt.Errorf("vsock: not implemented on %s", "linux")
+ 
+ func fileListener(_ *os.File) (*Listener, error)       { return nil, errUnimplemented }
+ func listen(_, _ uint32, _ *Config) (*Listener, error) { return nil, errUnimplemented }
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/minio/minio-go/v7/api.go lxd-6.1.mod/lxd/vendor/github.com/minio/minio-go/v7/api.go
+--- lxd-6.1/lxd/vendor/github.com/minio/minio-go/v7/api.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/minio/minio-go/v7/api.go	2024-10-31 20:26:43.595994430 +0800
+@@ -137,7 +137,7 @@
+ //
+ //	MinIO (OS; ARCH) LIB/VER APP/VER
+ const (
+-	libraryUserAgentPrefix = "MinIO (" + runtime.GOOS + "; " + runtime.GOARCH + ") "
++	libraryUserAgentPrefix = "MinIO (" + "linux" + "; " + runtime.GOARCH + ") "
+ 	libraryUserAgent       = libraryUserAgentPrefix + libraryName + "/" + libraryVersion
+ )
+ 
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/minio/minio-go/v7/pkg/credentials/file_minio_client.go lxd-6.1.mod/lxd/vendor/github.com/minio/minio-go/v7/pkg/credentials/file_minio_client.go
+--- lxd-6.1/lxd/vendor/github.com/minio/minio-go/v7/pkg/credentials/file_minio_client.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/minio/minio-go/v7/pkg/credentials/file_minio_client.go	2024-10-31 20:26:43.595994430 +0800
+@@ -20,7 +20,7 @@
+ import (
+ 	"os"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 
+ 	"github.com/goccy/go-json"
+ )
+@@ -68,7 +68,7 @@
+ 				return Value{}, err
+ 			}
+ 			p.Filename = filepath.Join(homeDir, ".mc", "config.json")
+-			if runtime.GOOS == "windows" {
++			if "linux" == "windows" {
+ 				p.Filename = filepath.Join(homeDir, "mc", "config.json")
+ 			}
+ 		}
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/mitchellh/go-homedir/homedir.go lxd-6.1.mod/lxd/vendor/github.com/mitchellh/go-homedir/homedir.go
+--- lxd-6.1/lxd/vendor/github.com/mitchellh/go-homedir/homedir.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/mitchellh/go-homedir/homedir.go	2024-10-31 20:26:43.595994430 +0800
+@@ -6,7 +6,7 @@
+ 	"os"
+ 	"os/exec"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 	"strconv"
+ 	"strings"
+ 	"sync"
+@@ -38,7 +38,7 @@
+ 
+ 	var result string
+ 	var err error
+-	if runtime.GOOS == "windows" {
++	if "linux" == "windows" {
+ 		result, err = dirWindows()
+ 	} else {
+ 		// Unix-like system, so just assume Unix
+@@ -88,7 +88,7 @@
+ 
+ func dirUnix() (string, error) {
+ 	homeEnv := "HOME"
+-	if runtime.GOOS == "plan9" {
++	if "linux" == "plan9" {
+ 		// On plan9, env vars are lowercase.
+ 		homeEnv = "home"
+ 	}
+@@ -101,7 +101,7 @@
+ 	var stdout bytes.Buffer
+ 
+ 	// If that fails, try OS specific commands
+-	if runtime.GOOS == "darwin" {
++	if "linux" == "darwin" {
+ 		cmd := exec.Command("sh", "-c", `dscl -q . -read /Users/"$(whoami)" NFSHomeDirectory | sed 's/^[^ ]*: //'`)
+ 		cmd.Stdout = &stdout
+ 		if err := cmd.Run(); err == nil {
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/sirupsen/logrus/text_formatter.go lxd-6.1.mod/lxd/vendor/github.com/sirupsen/logrus/text_formatter.go
+--- lxd-6.1/lxd/vendor/github.com/sirupsen/logrus/text_formatter.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/sirupsen/logrus/text_formatter.go	2024-10-31 20:26:43.599994430 +0800
+@@ -115,7 +115,7 @@
+ }
+ 
+ func (f *TextFormatter) isColored() bool {
+-	isColored := f.ForceColors || (f.isTerminal && (runtime.GOOS != "windows"))
++	isColored := f.ForceColors || (f.isTerminal && ("linux" != "windows"))
+ 
+ 	if f.EnvironmentOverrideColors {
+ 		switch force, ok := os.LookupEnv("CLICOLOR_FORCE"); {
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/spf13/afero/basepath.go lxd-6.1.mod/lxd/vendor/github.com/spf13/afero/basepath.go
+--- lxd-6.1/lxd/vendor/github.com/spf13/afero/basepath.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/spf13/afero/basepath.go	2024-10-31 20:26:43.599994430 +0800
+@@ -4,7 +4,7 @@
+ 	"io/fs"
+ 	"os"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ 	"time"
+ )
+@@ -65,7 +65,7 @@
+ }
+ 
+ func validateBasePathName(name string) error {
+-	if runtime.GOOS != "windows" {
++	if "linux" != "windows" {
+ 		// Not much to do here;
+ 		// the virtual file paths all look absolute on *nix.
+ 		return nil
+diff --color -uNr lxd-6.1/lxd/vendor/github.com/spf13/viper/util.go lxd-6.1.mod/lxd/vendor/github.com/spf13/viper/util.go
+--- lxd-6.1/lxd/vendor/github.com/spf13/viper/util.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/github.com/spf13/viper/util.go	2024-10-31 20:26:43.599994430 +0800
+@@ -14,7 +14,7 @@
+ 	"fmt"
+ 	"os"
+ 	"path/filepath"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ 	"unicode"
+ 
+@@ -138,7 +138,7 @@
+ }
+ 
+ func userHomeDir() string {
+-	if runtime.GOOS == "windows" {
++	if "linux" == "windows" {
+ 		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
+ 		if home == "" {
+ 			home = os.Getenv("USERPROFILE")
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/net/http2/server.go lxd-6.1.mod/lxd/vendor/golang.org/x/net/http2/server.go
+--- lxd-6.1/lxd/vendor/golang.org/x/net/http2/server.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/net/http2/server.go	2024-10-31 20:26:43.603994430 +0800
+@@ -780,7 +780,7 @@
+ 	// build tags, so I can't make an http2_windows.go file with
+ 	// Windows-specific stuff. Fix that and move this, once we
+ 	// have a way to bundle this into std's net/http somehow.
+-	if runtime.GOOS == "windows" {
++	if "linux" == "windows" {
+ 		if oe, ok := err.(*net.OpError); ok && oe.Op == "read" {
+ 			if se, ok := oe.Err.(*os.SyscallError); ok && se.Syscall == "wsarecv" {
+ 				const WSAECONNABORTED = 10053
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/net/icmp/endpoint.go lxd-6.1.mod/lxd/vendor/golang.org/x/net/icmp/endpoint.go
+--- lxd-6.1/lxd/vendor/golang.org/x/net/icmp/endpoint.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/net/icmp/endpoint.go	2024-10-31 20:26:43.603994430 +0800
+@@ -6,7 +6,7 @@
+ 
+ import (
+ 	"net"
+-	"runtime"
++	_ "runtime"
+ 	"time"
+ 
+ 	"golang.org/x/net/ipv4"
+@@ -51,7 +51,7 @@
+ 	// Please be informed that ipv4.NewPacketConn enables
+ 	// IP_STRIPHDR option by default on Darwin.
+ 	// See golang.org/issue/9395 for further information.
+-	if (runtime.GOOS == "darwin" || runtime.GOOS == "ios") && c.p4 != nil {
++	if ("linux" == "darwin" || "linux" == "ios") && c.p4 != nil {
+ 		n, _, peer, err := c.p4.ReadFrom(b)
+ 		return n, peer, err
+ 	}
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/net/icmp/ipv4.go lxd-6.1.mod/lxd/vendor/golang.org/x/net/icmp/ipv4.go
+--- lxd-6.1/lxd/vendor/golang.org/x/net/icmp/ipv4.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/net/icmp/ipv4.go	2024-10-31 20:26:43.603994430 +0800
+@@ -7,7 +7,7 @@
+ import (
+ 	"encoding/binary"
+ 	"net"
+-	"runtime"
++	_ "runtime"
+ 
+ 	"golang.org/x/net/internal/socket"
+ 	"golang.org/x/net/ipv4"
+@@ -47,7 +47,7 @@
+ 		Src:      net.IPv4(b[12], b[13], b[14], b[15]),
+ 		Dst:      net.IPv4(b[16], b[17], b[18], b[19]),
+ 	}
+-	switch runtime.GOOS {
++	switch "linux" {
+ 	case "darwin", "ios":
+ 		h.TotalLen = int(socket.NativeEndian.Uint16(b[2:4]))
+ 	case "freebsd":
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/net/icmp/listen_posix.go lxd-6.1.mod/lxd/vendor/golang.org/x/net/icmp/listen_posix.go
+--- lxd-6.1/lxd/vendor/golang.org/x/net/icmp/listen_posix.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/net/icmp/listen_posix.go	2024-10-31 20:26:43.603994430 +0800
+@@ -9,7 +9,7 @@
+ import (
+ 	"net"
+ 	"os"
+-	"runtime"
++	_ "runtime"
+ 	"syscall"
+ 
+ 	"golang.org/x/net/internal/iana"
+@@ -70,7 +70,7 @@
+ 		if err != nil {
+ 			return nil, os.NewSyscallError("socket", err)
+ 		}
+-		if (runtime.GOOS == "darwin" || runtime.GOOS == "ios") && family == syscall.AF_INET {
++		if ("linux" == "darwin" || "linux" == "ios") && family == syscall.AF_INET {
+ 			if err := syscall.SetsockoptInt(s, iana.ProtocolIP, sysIP_STRIPHDR, 1); err != nil {
+ 				syscall.Close(s)
+ 				return nil, os.NewSyscallError("setsockopt", err)
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/net/icmp/message.go lxd-6.1.mod/lxd/vendor/golang.org/x/net/icmp/message.go
+--- lxd-6.1/lxd/vendor/golang.org/x/net/icmp/message.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/net/icmp/message.go	2024-10-31 20:26:43.603994430 +0800
+@@ -36,7 +36,7 @@
+ 	errInvalidBody      = errors.New("invalid body")
+ 	errNoExtension      = errors.New("no extension")
+ 	errInvalidExtension = errors.New("invalid extension")
+-	errNotImplemented   = errors.New("not implemented on " + runtime.GOOS + "/" + runtime.GOARCH)
++	errNotImplemented   = errors.New("not implemented on " + "linux" + "/" + runtime.GOARCH)
+ )
+ 
+ func checksum(b []byte) uint16 {
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/net/internal/socket/socket.go lxd-6.1.mod/lxd/vendor/golang.org/x/net/internal/socket/socket.go
+--- lxd-6.1/lxd/vendor/golang.org/x/net/internal/socket/socket.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/net/internal/socket/socket.go	2024-10-31 20:26:43.607994430 +0800
+@@ -13,7 +13,7 @@
+ 	"unsafe"
+ )
+ 
+-var errNotImplemented = errors.New("not implemented on " + runtime.GOOS + "/" + runtime.GOARCH)
++var errNotImplemented = errors.New("not implemented on " + "linux" + "/" + runtime.GOARCH)
+ 
+ // An Option represents a sticky socket option.
+ type Option struct {
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/net/internal/socket/sys_posix.go lxd-6.1.mod/lxd/vendor/golang.org/x/net/internal/socket/sys_posix.go
+--- lxd-6.1/lxd/vendor/golang.org/x/net/internal/socket/sys_posix.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/net/internal/socket/sys_posix.go	2024-10-31 20:26:43.607994430 +0800
+@@ -10,7 +10,7 @@
+ 	"encoding/binary"
+ 	"errors"
+ 	"net"
+-	"runtime"
++	_ "runtime"
+ 	"strconv"
+ 	"sync"
+ 	"time"
+@@ -34,7 +34,7 @@
+ 
+ func marshalSockaddr(ip net.IP, port int, zone string, b []byte) int {
+ 	if ip4 := ip.To4(); ip4 != nil {
+-		switch runtime.GOOS {
++		switch "linux" {
+ 		case "android", "illumos", "linux", "solaris", "windows":
+ 			NativeEndian.PutUint16(b[:2], uint16(sysAF_INET))
+ 		default:
+@@ -46,7 +46,7 @@
+ 		return sizeofSockaddrInet4
+ 	}
+ 	if ip6 := ip.To16(); ip6 != nil && ip.To4() == nil {
+-		switch runtime.GOOS {
++		switch "linux" {
+ 		case "android", "illumos", "linux", "solaris", "windows":
+ 			NativeEndian.PutUint16(b[:2], uint16(sysAF_INET6))
+ 		default:
+@@ -68,7 +68,7 @@
+ 		return nil, errors.New("invalid address")
+ 	}
+ 	var af int
+-	switch runtime.GOOS {
++	switch "linux" {
+ 	case "android", "illumos", "linux", "solaris", "windows":
+ 		af = int(NativeEndian.Uint16(b[:2]))
+ 	default:
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/net/ipv4/batch.go lxd-6.1.mod/lxd/vendor/golang.org/x/net/ipv4/batch.go
+--- lxd-6.1/lxd/vendor/golang.org/x/net/ipv4/batch.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/net/ipv4/batch.go	2024-10-31 20:26:43.607994430 +0800
+@@ -6,7 +6,7 @@
+ 
+ import (
+ 	"net"
+-	"runtime"
++	_ "runtime"
+ 
+ 	"golang.org/x/net/internal/socket"
+ )
+@@ -75,7 +75,7 @@
+ 	if !c.ok() {
+ 		return 0, errInvalidConn
+ 	}
+-	switch runtime.GOOS {
++	switch "linux" {
+ 	case "linux":
+ 		n, err := c.RecvMsgs([]socket.Message(ms), flags)
+ 		if err != nil {
+@@ -109,7 +109,7 @@
+ 	if !c.ok() {
+ 		return 0, errInvalidConn
+ 	}
+-	switch runtime.GOOS {
++	switch "linux" {
+ 	case "linux":
+ 		n, err := c.SendMsgs([]socket.Message(ms), flags)
+ 		if err != nil {
+@@ -141,7 +141,7 @@
+ 	if !c.ok() {
+ 		return 0, errInvalidConn
+ 	}
+-	switch runtime.GOOS {
++	switch "linux" {
+ 	case "linux":
+ 		n, err := c.RecvMsgs([]socket.Message(ms), flags)
+ 		if err != nil {
+@@ -175,7 +175,7 @@
+ 	if !c.ok() {
+ 		return 0, errInvalidConn
+ 	}
+-	switch runtime.GOOS {
++	switch "linux" {
+ 	case "linux":
+ 		n, err := c.SendMsgs([]socket.Message(ms), flags)
+ 		if err != nil {
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/net/ipv4/header.go lxd-6.1.mod/lxd/vendor/golang.org/x/net/ipv4/header.go
+--- lxd-6.1/lxd/vendor/golang.org/x/net/ipv4/header.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/net/ipv4/header.go	2024-10-31 20:26:43.607994430 +0800
+@@ -8,7 +8,7 @@
+ 	"encoding/binary"
+ 	"fmt"
+ 	"net"
+-	"runtime"
++	_ "runtime"
+ 
+ 	"golang.org/x/net/internal/socket"
+ )
+@@ -66,7 +66,7 @@
+ 	b[0] = byte(Version<<4 | (hdrlen >> 2 & 0x0f))
+ 	b[1] = byte(h.TOS)
+ 	flagsAndFragOff := (h.FragOff & 0x1fff) | int(h.Flags<<13)
+-	switch runtime.GOOS {
++	switch "linux" {
+ 	case "darwin", "ios", "dragonfly", "netbsd":
+ 		socket.NativeEndian.PutUint16(b[2:4], uint16(h.TotalLen))
+ 		socket.NativeEndian.PutUint16(b[6:8], uint16(flagsAndFragOff))
+@@ -125,7 +125,7 @@
+ 	h.Checksum = int(binary.BigEndian.Uint16(b[10:12]))
+ 	h.Src = net.IPv4(b[12], b[13], b[14], b[15])
+ 	h.Dst = net.IPv4(b[16], b[17], b[18], b[19])
+-	switch runtime.GOOS {
++	switch "linux" {
+ 	case "darwin", "ios", "dragonfly", "netbsd":
+ 		h.TotalLen = int(socket.NativeEndian.Uint16(b[2:4])) + hdrlen
+ 		h.FragOff = int(socket.NativeEndian.Uint16(b[6:8]))
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/net/ipv4/helper.go lxd-6.1.mod/lxd/vendor/golang.org/x/net/ipv4/helper.go
+--- lxd-6.1/lxd/vendor/golang.org/x/net/ipv4/helper.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/net/ipv4/helper.go	2024-10-31 20:26:43.607994430 +0800
+@@ -19,7 +19,7 @@
+ 	errHeaderTooShort    = errors.New("header too short")
+ 	errExtHeaderTooShort = errors.New("extension header too short")
+ 	errInvalidConnType   = errors.New("invalid conn type")
+-	errNotImplemented    = errors.New("not implemented on " + runtime.GOOS + "/" + runtime.GOARCH)
++	errNotImplemented    = errors.New("not implemented on " + "linux" + "/" + runtime.GOARCH)
+ 
+ 	// See https://www.freebsd.org/doc/en/books/porters-handbook/versions.html.
+ 	freebsdVersion  uint32
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/net/ipv4/sys_freebsd.go lxd-6.1.mod/lxd/vendor/golang.org/x/net/ipv4/sys_freebsd.go
+--- lxd-6.1/lxd/vendor/golang.org/x/net/ipv4/sys_freebsd.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/net/ipv4/sys_freebsd.go	2024-10-31 20:26:43.607994430 +0800
+@@ -50,7 +50,7 @@
+ 	if freebsdVersion >= 1000000 {
+ 		sockOpts[ssoMulticastInterface] = &sockOpt{Option: socket.Option{Level: iana.ProtocolIP, Name: unix.IP_MULTICAST_IF, Len: unix.SizeofIPMreqn}, typ: ssoTypeIPMreqn}
+ 	}
+-	if runtime.GOOS == "freebsd" && runtime.GOARCH == "386" {
++	if "linux" == "freebsd" && runtime.GOARCH == "386" {
+ 		archs, _ := syscall.Sysctl("kern.supported_archs")
+ 		for _, s := range strings.Fields(archs) {
+ 			if s == "amd64" {
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/net/ipv6/batch.go lxd-6.1.mod/lxd/vendor/golang.org/x/net/ipv6/batch.go
+--- lxd-6.1/lxd/vendor/golang.org/x/net/ipv6/batch.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/net/ipv6/batch.go	2024-10-31 20:26:43.611994430 +0800
+@@ -6,7 +6,7 @@
+ 
+ import (
+ 	"net"
+-	"runtime"
++	_ "runtime"
+ 
+ 	"golang.org/x/net/internal/socket"
+ )
+@@ -66,7 +66,7 @@
+ 	if !c.ok() {
+ 		return 0, errInvalidConn
+ 	}
+-	switch runtime.GOOS {
++	switch "linux" {
+ 	case "linux":
+ 		n, err := c.RecvMsgs([]socket.Message(ms), flags)
+ 		if err != nil {
+@@ -97,7 +97,7 @@
+ 	if !c.ok() {
+ 		return 0, errInvalidConn
+ 	}
+-	switch runtime.GOOS {
++	switch "linux" {
+ 	case "linux":
+ 		n, err := c.SendMsgs([]socket.Message(ms), flags)
+ 		if err != nil {
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/net/ipv6/helper.go lxd-6.1.mod/lxd/vendor/golang.org/x/net/ipv6/helper.go
+--- lxd-6.1/lxd/vendor/golang.org/x/net/ipv6/helper.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/net/ipv6/helper.go	2024-10-31 20:26:43.611994430 +0800
+@@ -15,7 +15,7 @@
+ 	errMissingAddress  = errors.New("missing address")
+ 	errHeaderTooShort  = errors.New("header too short")
+ 	errInvalidConnType = errors.New("invalid conn type")
+-	errNotImplemented  = errors.New("not implemented on " + runtime.GOOS + "/" + runtime.GOARCH)
++	errNotImplemented  = errors.New("not implemented on " + "linux" + "/" + runtime.GOARCH)
+ )
+ 
+ func boolint(b bool) int {
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/net/ipv6/sockopt_posix.go lxd-6.1.mod/lxd/vendor/golang.org/x/net/ipv6/sockopt_posix.go
+--- lxd-6.1/lxd/vendor/golang.org/x/net/ipv6/sockopt_posix.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/net/ipv6/sockopt_posix.go	2024-10-31 20:26:43.611994430 +0800
+@@ -8,7 +8,7 @@
+ 
+ import (
+ 	"net"
+-	"runtime"
++	_ "runtime"
+ 	"unsafe"
+ 
+ 	"golang.org/x/net/bpf"
+@@ -58,7 +58,7 @@
+ 		return nil, 0, errNotImplemented
+ 	}
+ 	mi := (*ipv6Mtuinfo)(unsafe.Pointer(&b[0]))
+-	if mi.Addr.Scope_id == 0 || runtime.GOOS == "aix" {
++	if mi.Addr.Scope_id == 0 || "linux" == "aix" {
+ 		// AIX kernel might return a wrong address.
+ 		return nil, int(mi.Mtu), nil
+ 	}
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/net/ipv6/sys_freebsd.go lxd-6.1.mod/lxd/vendor/golang.org/x/net/ipv6/sys_freebsd.go
+--- lxd-6.1/lxd/vendor/golang.org/x/net/ipv6/sys_freebsd.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/net/ipv6/sys_freebsd.go	2024-10-31 20:26:43.611994430 +0800
+@@ -49,7 +49,7 @@
+ )
+ 
+ func init() {
+-	if runtime.GOOS == "freebsd" && runtime.GOARCH == "386" {
++	if "linux" == "freebsd" && runtime.GOARCH == "386" {
+ 		archs, _ := syscall.Sysctl("kern.supported_archs")
+ 		for _, s := range strings.Fields(archs) {
+ 			if s == "amd64" {
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/sys/cpu/cpu_arm64.go lxd-6.1.mod/lxd/vendor/golang.org/x/sys/cpu/cpu_arm64.go
+--- lxd-6.1/lxd/vendor/golang.org/x/sys/cpu/cpu_arm64.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/sys/cpu/cpu_arm64.go	2024-10-31 20:26:43.611994430 +0800
+@@ -42,7 +42,7 @@
+ }
+ 
+ func archInit() {
+-	switch runtime.GOOS {
++	switch "linux" {
+ 	case "freebsd":
+ 		readARM64Registers()
+ 	case "linux", "netbsd", "openbsd":
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/sys/cpu/cpu_x86.go lxd-6.1.mod/lxd/vendor/golang.org/x/sys/cpu/cpu_x86.go
+--- lxd-6.1/lxd/vendor/golang.org/x/sys/cpu/cpu_x86.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/sys/cpu/cpu_x86.go	2024-10-31 20:26:43.611994430 +0800
+@@ -91,7 +91,7 @@
+ 		// Check if XMM and YMM registers have OS support.
+ 		osSupportsAVX = isSet(1, eax) && isSet(2, eax)
+ 
+-		if runtime.GOOS == "darwin" {
++		if "linux" == "darwin" {
+ 			// Darwin doesn't save/restore AVX-512 mask registers correctly across signal handlers.
+ 			// Since users can't rely on mask register contents, let's not advertise AVX-512 support.
+ 			// See issue 49233.
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/sys/unix/sockcmsg_unix_other.go lxd-6.1.mod/lxd/vendor/golang.org/x/sys/unix/sockcmsg_unix_other.go
+--- lxd-6.1/lxd/vendor/golang.org/x/sys/unix/sockcmsg_unix_other.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/sys/unix/sockcmsg_unix_other.go	2024-10-31 20:26:43.615994430 +0800
+@@ -16,7 +16,7 @@
+ 
+ 	// dragonfly needs to check ABI version at runtime, see cmsgAlignOf in
+ 	// sockcmsg_dragonfly.go
+-	switch runtime.GOOS {
++	switch "linux" {
+ 	case "aix":
+ 		// There is no alignment on AIX.
+ 		salign = 1
+@@ -33,7 +33,7 @@
+ 			salign = 8
+ 		}
+ 		// NetBSD aarch64 requires 128-bit alignment.
+-		if runtime.GOOS == "netbsd" && runtime.GOARCH == "arm64" {
++		if "linux" == "netbsd" && runtime.GOARCH == "arm64" {
+ 			salign = 16
+ 		}
+ 	case "zos":
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/sys/unix/syscall_bsd.go lxd-6.1.mod/lxd/vendor/golang.org/x/sys/unix/syscall_bsd.go
+--- lxd-6.1/lxd/vendor/golang.org/x/sys/unix/syscall_bsd.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/sys/unix/syscall_bsd.go	2024-10-31 20:26:43.615994430 +0800
+@@ -13,7 +13,7 @@
+ package unix
+ 
+ import (
+-	"runtime"
++	_ "runtime"
+ 	"syscall"
+ 	"unsafe"
+ )
+@@ -274,7 +274,7 @@
+ 	if err != nil {
+ 		return
+ 	}
+-	if (runtime.GOOS == "darwin" || runtime.GOOS == "ios") && len == 0 {
++	if ("linux" == "darwin" || "linux" == "ios") && len == 0 {
+ 		// Accepted socket has no address.
+ 		// This is likely due to a bug in xnu kernels,
+ 		// where instead of ECONNABORTED error socket
+@@ -298,7 +298,7 @@
+ 	}
+ 	// TODO(jsing): DragonFly has a "bug" (see issue 3349), which should be
+ 	// reported upstream.
+-	if runtime.GOOS == "dragonfly" && rsa.Addr.Family == AF_UNSPEC && rsa.Addr.Len == 0 {
++	if "linux" == "dragonfly" && rsa.Addr.Family == AF_UNSPEC && rsa.Addr.Len == 0 {
+ 		rsa.Addr.Family = AF_UNIX
+ 		rsa.Addr.Len = SizeofSockaddrUnix
+ 	}
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/term/terminal.go lxd-6.1.mod/lxd/vendor/golang.org/x/term/terminal.go
+--- lxd-6.1/lxd/vendor/golang.org/x/term/terminal.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/term/terminal.go	2024-10-31 20:26:43.619994430 +0800
+@@ -7,7 +7,7 @@
+ import (
+ 	"bytes"
+ 	"io"
+-	"runtime"
++	_ "runtime"
+ 	"strconv"
+ 	"sync"
+ 	"unicode/utf8"
+@@ -962,12 +962,12 @@
+ 					ret = ret[:len(ret)-1]
+ 				}
+ 			case '\n':
+-				if runtime.GOOS != "windows" {
++				if "linux" != "windows" {
+ 					return ret, nil
+ 				}
+ 				// otherwise ignore \n
+ 			case '\r':
+-				if runtime.GOOS == "windows" {
++				if "linux" == "windows" {
+ 					return ret, nil
+ 				}
+ 				// otherwise ignore \r
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/term/term_plan9.go lxd-6.1.mod/lxd/vendor/golang.org/x/term/term_plan9.go
+--- lxd-6.1/lxd/vendor/golang.org/x/term/term_plan9.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/term/term_plan9.go	2024-10-31 20:26:43.619994430 +0800
+@@ -22,21 +22,21 @@
+ }
+ 
+ func makeRaw(fd int) (*State, error) {
+-	return nil, fmt.Errorf("terminal: MakeRaw not implemented on %s/%s", runtime.GOOS, runtime.GOARCH)
++	return nil, fmt.Errorf("terminal: MakeRaw not implemented on %s/%s", "linux", runtime.GOARCH)
+ }
+ 
+ func getState(fd int) (*State, error) {
+-	return nil, fmt.Errorf("terminal: GetState not implemented on %s/%s", runtime.GOOS, runtime.GOARCH)
++	return nil, fmt.Errorf("terminal: GetState not implemented on %s/%s", "linux", runtime.GOARCH)
+ }
+ 
+ func restore(fd int, state *State) error {
+-	return fmt.Errorf("terminal: Restore not implemented on %s/%s", runtime.GOOS, runtime.GOARCH)
++	return fmt.Errorf("terminal: Restore not implemented on %s/%s", "linux", runtime.GOARCH)
+ }
+ 
+ func getSize(fd int) (width, height int, err error) {
+-	return 0, 0, fmt.Errorf("terminal: GetSize not implemented on %s/%s", runtime.GOOS, runtime.GOARCH)
++	return 0, 0, fmt.Errorf("terminal: GetSize not implemented on %s/%s", "linux", runtime.GOARCH)
+ }
+ 
+ func readPassword(fd int) ([]byte, error) {
+-	return nil, fmt.Errorf("terminal: ReadPassword not implemented on %s/%s", runtime.GOOS, runtime.GOARCH)
++	return nil, fmt.Errorf("terminal: ReadPassword not implemented on %s/%s", "linux", runtime.GOARCH)
+ }
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/term/term_unsupported.go lxd-6.1.mod/lxd/vendor/golang.org/x/term/term_unsupported.go
+--- lxd-6.1/lxd/vendor/golang.org/x/term/term_unsupported.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/term/term_unsupported.go	2024-10-31 20:26:43.619994430 +0800
+@@ -18,21 +18,21 @@
+ }
+ 
+ func makeRaw(fd int) (*State, error) {
+-	return nil, fmt.Errorf("terminal: MakeRaw not implemented on %s/%s", runtime.GOOS, runtime.GOARCH)
++	return nil, fmt.Errorf("terminal: MakeRaw not implemented on %s/%s", "linux", runtime.GOARCH)
+ }
+ 
+ func getState(fd int) (*State, error) {
+-	return nil, fmt.Errorf("terminal: GetState not implemented on %s/%s", runtime.GOOS, runtime.GOARCH)
++	return nil, fmt.Errorf("terminal: GetState not implemented on %s/%s", "linux", runtime.GOARCH)
+ }
+ 
+ func restore(fd int, state *State) error {
+-	return fmt.Errorf("terminal: Restore not implemented on %s/%s", runtime.GOOS, runtime.GOARCH)
++	return fmt.Errorf("terminal: Restore not implemented on %s/%s", "linux", runtime.GOARCH)
+ }
+ 
+ func getSize(fd int) (width, height int, err error) {
+-	return 0, 0, fmt.Errorf("terminal: GetSize not implemented on %s/%s", runtime.GOOS, runtime.GOARCH)
++	return 0, 0, fmt.Errorf("terminal: GetSize not implemented on %s/%s", "linux", runtime.GOARCH)
+ }
+ 
+ func readPassword(fd int) ([]byte, error) {
+-	return nil, fmt.Errorf("terminal: ReadPassword not implemented on %s/%s", runtime.GOOS, runtime.GOARCH)
++	return nil, fmt.Errorf("terminal: ReadPassword not implemented on %s/%s", "linux", runtime.GOARCH)
+ }
+diff --color -uNr lxd-6.1/lxd/vendor/golang.org/x/tools/internal/gocommand/invoke.go lxd-6.1.mod/lxd/vendor/golang.org/x/tools/internal/gocommand/invoke.go
+--- lxd-6.1/lxd/vendor/golang.org/x/tools/internal/gocommand/invoke.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/golang.org/x/tools/internal/gocommand/invoke.go	2024-10-31 20:26:43.619994430 +0800
+@@ -18,7 +18,7 @@
+ 	"path/filepath"
+ 	"reflect"
+ 	"regexp"
+-	"runtime"
++	_ "runtime"
+ 	"strconv"
+ 	"strings"
+ 	"sync"
+@@ -427,7 +427,7 @@
+ }
+ 
+ func HandleHangingGoCommand(start time.Time, cmd *exec.Cmd) {
+-	switch runtime.GOOS {
++	switch "linux" {
+ 	case "linux", "darwin", "freebsd", "netbsd":
+ 		fmt.Fprintln(os.Stderr, `DETECTED A HANGING GO COMMAND
+ 
+@@ -446,7 +446,7 @@
+ 		}
+ 
+ 		listFiles := "lsof"
+-		if runtime.GOOS == "freebsd" || runtime.GOOS == "netbsd" {
++		if "linux" == "freebsd" || "linux" == "netbsd" {
+ 			listFiles = "fstat"
+ 		}
+ 
+diff --color -uNr lxd-6.1/lxd/vendor/go.opentelemetry.io/otel/sdk/resource/process.go lxd-6.1.mod/lxd/vendor/go.opentelemetry.io/otel/sdk/resource/process.go
+--- lxd-6.1/lxd/vendor/go.opentelemetry.io/otel/sdk/resource/process.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/go.opentelemetry.io/otel/sdk/resource/process.go	2024-10-31 20:26:43.623994430 +0800
+@@ -37,7 +37,7 @@
+ 		return runtime.Compiler
+ 	}
+ 	defaultRuntimeVersionProvider runtimeVersionProvider = runtime.Version
+-	defaultRuntimeOSProvider      runtimeOSProvider      = func() string { return runtime.GOOS }
++	defaultRuntimeOSProvider      runtimeOSProvider      = func() string { return "linux" }
+ 	defaultRuntimeArchProvider    runtimeArchProvider    = func() string { return runtime.GOARCH }
+ )
+ 
+diff --color -uNr lxd-6.1/lxd/vendor/gopkg.in/ini.v1/ini.go lxd-6.1.mod/lxd/vendor/gopkg.in/ini.v1/ini.go
+--- lxd-6.1/lxd/vendor/gopkg.in/ini.v1/ini.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/gopkg.in/ini.v1/ini.go	2024-10-31 20:26:43.623994430 +0800
+@@ -18,7 +18,7 @@
+ import (
+ 	"os"
+ 	"regexp"
+-	"runtime"
++	_ "runtime"
+ 	"strings"
+ )
+ 
+@@ -58,7 +58,7 @@
+ var inTest = len(os.Args) > 0 && strings.HasSuffix(strings.TrimSuffix(os.Args[0], ".exe"), ".test")
+ 
+ func init() {
+-	if runtime.GOOS == "windows" && !inTest {
++	if "linux" == "windows" && !inTest {
+ 		LineBreak = "\r\n"
+ 	}
+ }
+diff --color -uNr lxd-6.1/lxd/vendor/k8s.io/utils/inotify/inotify_others.go lxd-6.1.mod/lxd/vendor/k8s.io/utils/inotify/inotify_others.go
+--- lxd-6.1/lxd/vendor/k8s.io/utils/inotify/inotify_others.go	2024-07-08 18:32:23.000000000 +0800
++++ lxd-6.1.mod/lxd/vendor/k8s.io/utils/inotify/inotify_others.go	2024-10-31 20:26:43.623994430 +0800
+@@ -20,10 +20,10 @@
+ 
+ import (
+ 	"fmt"
+-	"runtime"
++	_ "runtime"
+ )
+ 
+-var errNotSupported = fmt.Errorf("watch not supported on %s", runtime.GOOS)
++var errNotSupported = fmt.Errorf("watch not supported on %s", "linux")
+ 
+ // NewWatcher creates and returns a new inotify instance using inotify_init(2)
+ func NewWatcher() (*Watcher, error) {

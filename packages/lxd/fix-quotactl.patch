@@ -1,0 +1,17 @@
+diff --color -uNr lxd-6.1/lxd/lxd/storage/quota/projectquota.go lxd-6.1.mod/lxd/lxd/storage/quota/projectquota.go
+--- lxd-6.1/lxd/lxd/storage/quota/projectquota.go	2024-10-25 14:25:45.195450434 +0800
++++ lxd-6.1.mod/lxd/lxd/storage/quota/projectquota.go	2024-10-25 15:59:58.363448277 +0800
+@@ -58,6 +58,13 @@
+ #define PRJQUOTA 2
+ #endif
+ 
++
++#include <errno.h>
++int quotactl(int cmd, const char *special, int id, caddr_t addr) {
++    errno = ENOSYS; // Function not supported
++    return -1;
++}
++
+ int quota_supported(char *dev_path) {
+ 	struct if_dqinfo dqinfo;
+ 

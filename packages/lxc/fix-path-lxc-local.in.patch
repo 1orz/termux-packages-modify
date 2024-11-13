@@ -1,0 +1,11 @@
+--- src.orig/templates/lxc-local.in	2024-05-27 21:08:37.677778066 +0800
++++ src/templates/lxc-local.in	2024-05-27 21:11:18.517778005 +0800
+@@ -149,7 +149,7 @@
+   # Create temporary build directory.
+   # If mktemp is not available, use /tmp/lxc-local.$$
+   if ! command -V mktemp >/dev/null 2>&1; then
+-    LOCAL_TEMP=/tmp/lxc-local.$$
++    LOCAL_TEMP=@TERMUX_PREFIX@/tmp/lxc-local.$$
+     mkdir -p "${LOCAL_TEMP}"
+   else
+     LOCAL_TEMP=$(mktemp -d)

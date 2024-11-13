@@ -1,0 +1,33 @@
+diff --color -uNr dqlite-1.18.0/src/lib/addr.c dqlite-1.18.0.mod/src/lib/addr.c
+--- dqlite-1.18.0/src/lib/addr.c	2024-10-23 11:25:04.000000000 +0800
++++ dqlite-1.18.0.mod/src/lib/addr.c	2024-10-26 00:33:48.935341524 +0800
+@@ -32,7 +32,7 @@
+ 			return DQLITE_MISUSE;
+ 		}
+ 		addr_un = (struct sockaddr_un *)addr;
+-		if (*addr_len < sizeof(*addr_un)) {
++		if ((unsigned int)*addr_len < sizeof(*addr_un)) {
+ 			return DQLITE_ERROR;
+ 		}
+ 		name = input + 1;
+@@ -98,7 +98,7 @@
+ 		rv = DQLITE_ERROR;
+ 		goto err_after_getaddrinfo;
+ 	}
+-	memcpy(addr, res->ai_addr, res->ai_addrlen);
++	memcpy(addr, res->ai_addr, (unsigned int)res->ai_addrlen);
+ 	*addr_len = res->ai_addrlen;
+ 
+ err_after_getaddrinfo:
+diff --color -uNr dqlite-1.18.0/src/raft/uv_tcp_listen.c dqlite-1.18.0.mod/src/raft/uv_tcp_listen.c
+--- dqlite-1.18.0/src/raft/uv_tcp_listen.c	2024-10-23 11:25:04.000000000 +0800
++++ dqlite-1.18.0.mod/src/raft/uv_tcp_listen.c	2024-10-26 00:46:15.507341239 +0800
+@@ -360,7 +360,7 @@
+ 		return false;
+ 	}
+ 	if (addr_info->ai_addrlen != next->ai_addrlen ||
+-	    memcmp(addr_info->ai_addr, next->ai_addr, addr_info->ai_addrlen)) {
++	    memcmp(addr_info->ai_addr, next->ai_addr, (unsigned int)addr_info->ai_addrlen)) {
+ 		return false;
+ 	}
+ 	return true;

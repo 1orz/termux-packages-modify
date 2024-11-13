@@ -1,0 +1,39 @@
+diff --color -uNr tini-0.19.0/tini/src/tini.c tini-0.19.0.mod/tini/src/tini.c
+--- tini-0.19.0/tini/src/tini.c	2020-04-20 01:33:22.000000000 +0800
++++ tini-0.19.0.mod/tini/src/tini.c	2024-11-03 07:39:22.978924922 +0800
+@@ -147,7 +147,7 @@
+ 	return 0;
+ }
+ 
+-int isolate_child() {
++int isolate_child(void) {
+ 	// Put the child into a new process group.
+ 	if (setpgid(0, 0) < 0) {
+ 		PRINT_FATAL("setpgid failed: %s", strerror(errno));
+@@ -392,7 +392,7 @@
+ 	return 0;
+ }
+ 
+-int parse_env() {
++int parse_env(void) {
+ #if HAS_SUBREAPER
+ 	if (getenv(SUBREAPER_ENV_VAR) != NULL) {
+ 		subreaper++;
+@@ -413,7 +413,7 @@
+ 
+ 
+ #if HAS_SUBREAPER
+-int register_subreaper () {
++int register_subreaper (void) {
+ 	if (subreaper > 0) {
+ 		if (prctl(PR_SET_CHILD_SUBREAPER, 1)) {
+ 			if (errno == EINVAL) {
+@@ -431,7 +431,7 @@
+ #endif
+ 
+ 
+-void reaper_check () {
++void reaper_check (void) {
+ 	/* Check that we can properly reap zombies */
+ #if HAS_SUBREAPER
+ 	int bit = 0;

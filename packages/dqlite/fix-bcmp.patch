@@ -1,0 +1,12 @@
+diff --color -uNr dqlite-1.18.0/src/raft/uv_tcp_listen.c dqlite-1.18.0.mod/src/raft/uv_tcp_listen.c
+--- dqlite-1.18.0/src/raft/uv_tcp_listen.c	2024-10-23 11:25:04.000000000 +0800
++++ dqlite-1.18.0.mod/src/raft/uv_tcp_listen.c	2024-10-24 22:04:05.945370713 +0800
+@@ -360,7 +360,7 @@
+ 		return false;
+ 	}
+ 	if (addr_info->ai_addrlen != next->ai_addrlen ||
+-	    bcmp(addr_info->ai_addr, next->ai_addr, addr_info->ai_addrlen)) {
++	    memcmp(addr_info->ai_addr, next->ai_addr, addr_info->ai_addrlen)) {
+ 		return false;
+ 	}
+ 	return true;

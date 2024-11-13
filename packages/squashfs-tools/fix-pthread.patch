@@ -1,0 +1,85 @@
+diff --color -uNr squashfs-tools-4.6.1/squashfs-tools/mksquashfs.c squashfs-tools-4.6.1.mod/squashfs-tools/mksquashfs.c
+--- squashfs-tools-4.6.1/squashfs-tools/mksquashfs.c	2023-03-26 04:53:37.000000000 +0800
++++ squashfs-tools-4.6.1.mod/squashfs-tools/mksquashfs.c	2024-10-28 13:13:17.646637008 +0800
+@@ -7592,7 +7592,6 @@
+ 	pthread_mutex_lock(&fragment_mutex);
+ 	while(fragments_outstanding) {
+ 		pthread_mutex_unlock(&fragment_mutex);
+-		pthread_testcancel();
+ 		sched_yield();
+ 		pthread_mutex_lock(&fragment_mutex);
+ 	}
+@@ -8865,7 +8864,6 @@
+ 	pthread_mutex_lock(&fragment_mutex);
+ 	while(fragments_outstanding) {
+ 		pthread_mutex_unlock(&fragment_mutex);
+-		pthread_testcancel();
+ 		sched_yield();
+ 		pthread_mutex_lock(&fragment_mutex);
+ 	}
+diff --color -uNr squashfs-tools-4.6.1/squashfs-tools/restore.c squashfs-tools-4.6.1.mod/squashfs-tools/restore.c
+--- squashfs-tools-4.6.1/squashfs-tools/restore.c	2023-03-26 04:53:37.000000000 +0800
++++ squashfs-tools-4.6.1.mod/squashfs-tools/restore.c	2024-10-28 13:13:17.646637008 +0800
+@@ -84,7 +84,7 @@
+ 		disable_info();
+ 
+ 		/* first kill the reader thread */
+-		pthread_cancel(reader_thread);
++		pthread_kill(reader_thread, SIGUSR2);
+ 		pthread_join(reader_thread, NULL);
+ 
+ 		/*
+@@ -95,7 +95,7 @@
+ 
+ 		/* now kill the deflator thread(s) */
+ 		for(i = 0; i < processors; i++)
+-			pthread_cancel(deflator_thread[i]);
++			pthread_kill(deflator_thread[i], SIGUSR2);
+ 		for(i = 0; i < processors; i++)
+ 			pthread_join(deflator_thread[i], NULL);
+ 
+@@ -107,7 +107,7 @@
+ 
+ 		/* now kill the process fragment thread(s) */
+ 		for(i = 0; i < processors; i++)
+-			pthread_cancel(frag_thread[i]);
++			pthread_kill(frag_thread[i], SIGUSR2);
+ 		for(i = 0; i < processors; i++)
+ 			pthread_join(frag_thread[i], NULL);
+ 
+@@ -118,7 +118,7 @@
+ 		seq_queue_flush(to_main);
+ 
+ 		/* now kill the main thread */
+-		pthread_cancel(main_thread);
++		pthread_kill(main_thread, SIGUSR2);
+ 		pthread_join(main_thread, NULL);
+ 
+ 		/* then flush the main thread to fragment deflator thread(s)
+@@ -128,7 +128,7 @@
+ 
+ 		/* now kill the fragment deflator thread(s) */
+ 		for(i = 0; i < processors; i++)
+-			pthread_cancel(frag_deflator_thread[i]);
++			pthread_kill(frag_deflator_thread[i], SIGUSR2);
+ 		for(i = 0; i < processors; i++)
+ 			pthread_join(frag_deflator_thread[i], NULL);
+ 
+@@ -140,7 +140,7 @@
+ 			seq_queue_flush(to_order);
+ 
+ 			/* now kill the frag orderer thread */
+-			pthread_cancel(order_thread);
++			pthread_kill(order_thread, SIGUSR2);
+ 			pthread_join(order_thread, NULL);
+ 		}
+ 
+@@ -151,7 +151,7 @@
+ 		queue_flush(to_writer);
+ 
+ 		/* now kill the writer thread */
+-		pthread_cancel(writer_thread);
++		pthread_kill(writer_thread, SIGUSR2);
+ 		pthread_join(writer_thread, NULL);
+ 
+ 		TRACE("All threads cancelled\n");
